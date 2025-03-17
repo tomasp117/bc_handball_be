@@ -1,0 +1,34 @@
+# Použití ASP.NET runtime pro bìh aplikace
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+WORKDIR /app
+EXPOSE 5000
+
+# Použití .NET SDK pro build aplikace
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+ARG BUILD_CONFIGURATION=Release
+WORKDIR /src
+
+# Kopírování a obnova závislostí API a Core projektù
+COPY ["bc_handball_be.API/bc_handball_be.API.csproj", "bc_handball_be.API/"]
+COPY ["bc_handball_be.Core/bc_handball_be.Core.csproj", "bc_handball_be.Core/"]
+RUN dotnet restore "./bc_handball_be.API/bc_handball_be.API.csproj"
+
+# Kopírování celého kódu do kontejneru
+COPY . .
+
+# Build API projektu
+WORKDIR "/src/bc_handball_be.API"
+RUN dotnet build "./bc_handball_be.API.csproj" -c $BUILD_CONFIGURATION -o /app/build
+
+# Publikování API projektu
+FROM build AS publish
+ARG BUILD_CONFIGURATION=Release
+RUN dotnet publish "./bc_handball_be.API.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+
+# Final image pro bìh aplikace
+FROM base AS final
+WORKDIR /app
+COPY --from=publish /app/publish .
+
+# Použití CMD místo ENTRYPOINT pro flexibilitu
+CMD ["dotnet", "bc_handball_be.API.dll", "--urls", "http://0.0.0.0:5000"]

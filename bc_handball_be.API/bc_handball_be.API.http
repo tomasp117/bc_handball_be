@@ -1,0 +1,6 @@
+@bc_handball_be.API_HostAddress = http://localhost:5056
+
+GET {{bc_handball_be.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

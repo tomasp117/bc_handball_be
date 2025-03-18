@@ -22,6 +22,19 @@ namespace bc_handball_be.Infrastructure.Repositories
             _logger = logger;
         }
 
+        public async Task<IEnumerable<Group>> GetGroupsByCategoryAsync(int categoryId)
+        {
+            _logger.LogInformation("Fetching groups for category {CategoryId}", categoryId);
+
+            var groups = await _context.Groups
+                .Include(g => g.Teams)
+                .Where(g => g.CategoryId == categoryId)
+                .ToListAsync();
+
+            _logger.LogInformation("Fetched {Count} groups for category {CategoryId}", groups.Count, categoryId);
+            return groups;
+
+        }
 
         public async Task SaveGroupsAsync(IEnumerable<Group> newGroups, int categoryId)
         {
@@ -45,7 +58,17 @@ namespace bc_handball_be.Infrastructure.Repositories
                     _logger.LogWarning("No groups found to delete for category {CategoryId}", categoryId);
                 }
 
-                var validGroups = newGroups.Where(g => g.Teams.Any()).ToList();
+                var validGroups = newGroups
+                    .Where(g => g.Teams.Any())
+                    .Select(g => new Group
+                    {
+                        Id = 0, 
+                        Name = g.Name,
+                        CategoryId = categoryId,
+                        Teams = g.Teams 
+                    })
+                    .ToList();
+
                 if (!validGroups.Any())
                 {
                     _logger.LogWarning("No valid groups to save for category {CategoryId}, rolling back transaction", categoryId);
@@ -67,5 +90,6 @@ namespace bc_handball_be.Infrastructure.Repositories
                 throw;
             }
         }
+
     }
 }

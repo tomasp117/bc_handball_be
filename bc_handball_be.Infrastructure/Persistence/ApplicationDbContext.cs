@@ -25,6 +25,9 @@ namespace bc_handball_be.Infrastructure.Persistence
         public DbSet<Recorder> Recorders { get; set; }
         public DbSet<Admin> Admins { get; set; }
         public DbSet<Referee> Referees { get; set; }
+        public DbSet<Login> Logins { get; set; }
+        public DbSet<ClubAdmin> ClubAdmins { get; set; }
+
 
         override protected void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -44,6 +47,8 @@ namespace bc_handball_be.Infrastructure.Persistence
             modelBuilder.Entity<Recorder>().ToTable("Recorder");
             modelBuilder.Entity<Admin>().ToTable("Admin");
             modelBuilder.Entity<Referee>().ToTable("Referee");
+            modelBuilder.Entity<Login>().ToTable("Login");
+            modelBuilder.Entity<ClubAdmin>().ToTable("ClubAdmin");
 
             // 1:N Tournament - TournamentInstance
             modelBuilder.Entity<Tournament>()
@@ -129,28 +134,81 @@ namespace bc_handball_be.Infrastructure.Persistence
                 .HasForeignKey(m => m.AwayTeamId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // 1:1 Person - Login
+            modelBuilder.Entity<Person>()
+                .HasOne(p => p.Login)
+                .WithOne(l => l.Person)
+                .HasForeignKey<Login>(l => l.PersonId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+
+            // Roles
+            modelBuilder.Entity<Admin>()
+                .HasOne(a => a.Person)
+                .WithOne()
+                .HasForeignKey<Admin>(a => a.PersonId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Coach>()
+                .HasOne(c => c.Person)
+                .WithMany()
+                .HasForeignKey(c => c.PersonId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Recorder>()
+                .HasOne(r => r.Person)
+                .WithOne()
+                .HasForeignKey<Recorder>(r => r.PersonId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Referee>()
+                 .HasOne(r => r.Person)
+                 .WithOne()
+                 .HasForeignKey<Referee>(r => r.PersonId)
+                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ClubAdmin>()
+                .HasOne(ca => ca.Person)
+                .WithOne()
+                .HasForeignKey<ClubAdmin>(ca => ca.PersonId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Player>()
+                .HasOne(p => p.Person)
+                .WithMany()
+                .HasForeignKey(p => p.PersonId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+
+            // 1:1 Club - ClubAdmin
+            modelBuilder.Entity<ClubAdmin>()
+                .HasOne(ca => ca.Club)
+                .WithOne(c => c.ClubAdmin)
+                .HasForeignKey<ClubAdmin>(ca => ca.ClubId)
+                .OnDelete(DeleteBehavior.Cascade);
+
             // 1:1 MainReferee and AssistantReferee in Match
             modelBuilder.Entity<Match>()
                 .HasOne(m => m.MainReferee)
                 .WithMany(r => r.MainRefereeMatches)
                 .HasForeignKey(m => m.MainRefereeId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.SetNull);
 
             modelBuilder.Entity<Match>()
                 .HasOne(m => m.AssistantReferee)
                 .WithMany(r => r.AssistantRefereeMatches)
                 .HasForeignKey(m => m.AssistantRefereeId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.SetNull);
 
             // TPT inheritance
-            modelBuilder.Entity<Person>().ToTable("Person");
-            modelBuilder.Entity<Admin>().ToTable("Admin");
-            modelBuilder.Entity<Coach>().ToTable("Coach");
-            modelBuilder.Entity<Recorder>().ToTable("Recorder");
-            modelBuilder.Entity<Referee>().ToTable("Referee");
+            //modelBuilder.Entity<Person>().ToTable("Person");
+            //modelBuilder.Entity<Admin>().ToTable("Admin");
+            //modelBuilder.Entity<Coach>().ToTable("Coach");
+            //modelBuilder.Entity<Recorder>().ToTable("Recorder");
+            //modelBuilder.Entity<Referee>().ToTable("Referee");
 
             // Enum conversions
-            modelBuilder.Entity<Person>().Property(p => p.Role).HasConversion<string>();
+            //modelBuilder.Entity<Person>().Property(p => p.Role).HasConversion<string>();
             modelBuilder.Entity<Match>().Property(m => m.State).HasConversion<string>();
 
             // Ignore navigation properties in database

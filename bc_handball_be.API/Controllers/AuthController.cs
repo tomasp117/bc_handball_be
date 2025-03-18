@@ -1,4 +1,6 @@
 ﻿using bc_handball_be.API.DTOs;
+using bc_handball_be.Core.Entities.Actors.sub;
+using bc_handball_be.Core.Entities;
 using bc_handball_be.Core.Entities.Actors.super;
 using bc_handball_be.Core.Interfaces.IServices;
 using Microsoft.AspNetCore.Identity.Data;
@@ -20,22 +22,43 @@ namespace bc_handball_be.API.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterDTO model)
         {
-            if (!Enum.TryParse(model.Role, true, out UserRole role))
-            {
-                return BadRequest("Invalid role");
-            }
-
-            var user = new Person
+            // Vytvoření osoby
+            var person = new Person
             {
                 FirstName = model.FirstName,
                 LastName = model.LastName,
                 Email = model.Email,
                 PhoneNumber = model.PhoneNumber,
-                Username = model.Username,
-                Role = role
+                Address = model.Address,
+                DateOfBirth = model.DateOfBirth
             };
 
-            var success = await _authService.RegisterAsync(user, model.Password);
+            // Vytvoření loginu
+            var login = new Login
+            {
+                Username = model.Username,
+                Person = person
+            };
+            login.SetPassword(model.Password);
+            person.Login = login;
+
+            // Vytvoření role jako samostatné entity
+            object roleEntity = model.Role.ToLower() switch
+            {
+                "admin" => new Admin { Person = person },
+                "coach" => new Coach { Person = person },
+                "referee" => new Referee { Person = person },
+                "recorder" => new Recorder { Person = person },
+                "player" => new Player { Person = person },
+                "clubadmin" => new ClubAdmin { Person = person },
+                _ => null
+            };
+
+            if (roleEntity == null)
+                return BadRequest("Invalid role");
+
+            // Uložení uživatele včetně role
+            var success = await _authService.RegisterAsync(person, model.Username, model.Password, roleEntity);
             if (!success) return BadRequest("User already exists.");
 
             return Ok("User registered successfully.");

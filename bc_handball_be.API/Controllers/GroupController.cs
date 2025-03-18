@@ -56,5 +56,26 @@ namespace bc_handball_be.API.Controllers
                 return StatusCode(500, "An error occurred while saving groups.");
             }
         }
+
+        [HttpGet]
+        public async Task<IActionResult> GetGroupsForCategory([FromQuery] int categoryId)
+        {
+            try
+            {
+                var groups = await _groupService.GetGroupsByCategoryAsync(categoryId);
+                if (groups == null || !groups.Any())
+                {
+                    _logger.LogWarning("No groups found for category {CategoryId}", categoryId);
+                    return NotFound("No groups found.");
+                }
+                var groupDTOs = _mapper.Map<List<GroupDetailDTO>>(groups);
+                return Ok(groupDTOs);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting groups for category {CategoryId}", categoryId);
+                return StatusCode(500, "An error occurred while getting groups.");
+            }
+        }
     }
 }

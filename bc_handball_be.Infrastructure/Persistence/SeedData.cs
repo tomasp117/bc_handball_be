@@ -59,65 +59,65 @@ namespace bc_handball_be.Infrastructure.Persistence
                         context.SaveChanges();
                     }
 
-                    if (!context.Groups.Any())
-                    {
-                        var groups = new List<Group>
-                        {
-                            new Group { Name = "Skupina A", CategoryId = context.Categories.First().Id },
-                            new Group { Name = "Skupina B", CategoryId = context.Categories.First().Id },
-                            new Group { Name = "Skupina C", CategoryId = context.Categories.First().Id },
-                            new Group { Name = "Skupina D", CategoryId = context.Categories.First().Id },
-                            new Group { Name = "Skupina A", CategoryId = context.Categories.Skip(1).First().Id },
-                            new Group { Name = "Skupina B", CategoryId = context.Categories.Skip(1).First().Id },
-                            new Group { Name = "Skupina C", CategoryId = context.Categories.Skip(1).First().Id },
-                            new Group { Name = "Skupina D", CategoryId = context.Categories.Skip(1).First().Id },
-                            new Group { Name = "Skupina A", CategoryId = context.Categories.Skip(2).First().Id },
-                            new Group { Name = "Skupina B", CategoryId = context.Categories.Skip(2).First().Id },
-                            new Group { Name = "Skupina C", CategoryId = context.Categories.Skip(2).First().Id },
-                            new Group { Name = "Skupina D", CategoryId = context.Categories.Skip(2).First().Id },
-                            new Group { Name = "Skupina A", CategoryId = context.Categories.Skip(3).First().Id },
-                            new Group { Name = "Skupina B", CategoryId = context.Categories.Skip(3).First().Id },
-                            new Group { Name = "Skupina C", CategoryId = context.Categories.Skip(3).First().Id },
-                            new Group { Name = "Skupina D", CategoryId = context.Categories.Skip(3).First().Id },
-                            new Group { Name = "Skupina A", CategoryId = context.Categories.Skip(4).First().Id },
-                            new Group { Name = "Skupina B", CategoryId = context.Categories.Skip(4).First().Id },
-                            new Group { Name = "Skupina C", CategoryId = context.Categories.Skip(4).First().Id },
-                            new Group { Name = "Skupina D", CategoryId = context.Categories.Skip(4).First().Id }
-                        };
-                        context.Groups.AddRange(groups);
-                        context.SaveChanges();
-                    }
+                    //if (!context.Groups.Any())
+                    //{
+                    //    var groups = new List<Group>
+                    //    {
+                    //        new Group { Name = "Skupina A", CategoryId = context.Categories.First().Id },
+                    //        new Group { Name = "Skupina B", CategoryId = context.Categories.First().Id },
+                    //        new Group { Name = "Skupina C", CategoryId = context.Categories.First().Id },
+                    //        new Group { Name = "Skupina D", CategoryId = context.Categories.First().Id },
+                    //        new Group { Name = "Skupina A", CategoryId = context.Categories.Skip(1).First().Id },
+                    //        new Group { Name = "Skupina B", CategoryId = context.Categories.Skip(1).First().Id },
+                    //        new Group { Name = "Skupina C", CategoryId = context.Categories.Skip(1).First().Id },
+                    //        new Group { Name = "Skupina D", CategoryId = context.Categories.Skip(1).First().Id },
+                    //        new Group { Name = "Skupina A", CategoryId = context.Categories.Skip(2).First().Id },
+                    //        new Group { Name = "Skupina B", CategoryId = context.Categories.Skip(2).First().Id },
+                    //        new Group { Name = "Skupina C", CategoryId = context.Categories.Skip(2).First().Id },
+                    //        new Group { Name = "Skupina D", CategoryId = context.Categories.Skip(2).First().Id },
+                    //        new Group { Name = "Skupina A", CategoryId = context.Categories.Skip(3).First().Id },
+                    //        new Group { Name = "Skupina B", CategoryId = context.Categories.Skip(3).First().Id },
+                    //        new Group { Name = "Skupina C", CategoryId = context.Categories.Skip(3).First().Id },
+                    //        new Group { Name = "Skupina D", CategoryId = context.Categories.Skip(3).First().Id },
+                    //        new Group { Name = "Skupina A", CategoryId = context.Categories.Skip(4).First().Id },
+                    //        new Group { Name = "Skupina B", CategoryId = context.Categories.Skip(4).First().Id },
+                    //        new Group { Name = "Skupina C", CategoryId = context.Categories.Skip(4).First().Id },
+                    //        new Group { Name = "Skupina D", CategoryId = context.Categories.Skip(4).First().Id }
+                    //    };
+                    //    context.Groups.AddRange(groups);
+                    //    context.SaveChanges();
+                    //}
 
                     if (!context.Teams.Any())
                     {
                         var teams = new List<Team>();
                         var categories = context.Categories.ToList();
                         var clubs = context.Clubs.ToList();
-                        var groups = context.Groups.ToList();
+                        //var groups = context.Groups.ToList();
                         tournamentInstance = context.TournamentInstances.First();
 
                         int clubIdx = 0;
 
                         foreach (var category in categories)
                         {
-                            var categoryGroups = groups.Where(g => g.CategoryId == category.Id).ToList();
+                            //var categoryGroups = groups.Where(g => g.CategoryId == category.Id).ToList();
 
-                            foreach (var group in categoryGroups)
-                            {
-                                for (int i = 1; i <= 2; i++)
+                            //foreach (var group in categoryGroups)
+                            //{
+                                for (int i = 1; i <= 5; i++)
                                 {
                                     var team = new Team
                                     {
-                                        Name = $"{clubs[clubIdx % clubs.Count].Name} {category.Name} {group.Name} {i}",
+                                        Name = $"{clubs[clubIdx % clubs.Count].Name} {category.Name}{i}",
                                         ClubId = clubs[clubIdx % clubs.Count].Id,
                                         CategoryId = category.Id,
                                         TournamentInstanceId = tournamentInstance.Id,
-                                        GroupId = group.Id
+                                        GroupId = null,
                                     };
                                     teams.Add(team);
                                     clubIdx++;
                                 }
-                            }
+                            //}
                         }
 
                         context.Teams.AddRange(teams);
@@ -125,20 +125,225 @@ namespace bc_handball_be.Infrastructure.Persistence
 
                     }
 
-                    if (!context.Players.Any())
+                    //if (!context.Players.Any())
+                    //{
+                    //    var players = new List<Player>();
+                    //    var teams = context.Teams.ToList();
+                    //    var rnd = new Random();
+
+                    //    foreach (var team in teams)
+                    //    {
+                    //        for (int i = 1; i <= rnd.Next(10, 14); i++) // Každý tým má 10-14 hráčů
+                    //        {
+                    //            players.Add(new Player
+                    //            {
+                    //                FirstName = $"Player{i}",
+                    //                LastName = $"Team{team.Id}",
+                    //                Number = i,
+                    //                GoalCount = 0,
+                    //                SevenMeterGoalCount = 0,
+                    //                SevenMeterMissCount = 0,
+                    //                TwoMinPenaltyCount = 0,
+                    //                RedCardCount = 0,
+                    //                YellowCardCount = 0,
+                    //                TeamId = team.Id,
+                    //                CategoryId = team.CategoryId
+                    //            });
+                    //        }
+                    //    }
+
+                    //    context.Players.AddRange(players);
+                    //    context.SaveChanges();
+                    //}
+
+                    //if (!context.Matches.Any())
+                    //{
+                    //    var matches = new List<Match>();
+                    //    var groups = context.Groups.ToList();
+                    //    var rnd = new Random();
+
+                    //    foreach (var group in groups)
+                    //    {
+                    //        var teams = context.Teams.Where(t => t.GroupId == group.Id).ToList();
+                    //        for (int i = 0; i < teams.Count; i++)
+                    //        {
+                    //            for (int j = i + 1; j < teams.Count; j++)
+                    //            {
+                    //                matches.Add(new Match
+                    //                {
+                    //                    Time = DateTime.Now.AddDays(rnd.Next(1, 3)), 
+                    //                    TimePlayed = "00:00",
+                    //                    Playground = $"Hřiště {rnd.Next(1, 5)}", 
+                    //                    Score = "0:0",
+                    //                    State = MatchState.None,
+                    //                    HomeTeamId = teams[i].Id,
+                    //                    AwayTeamId = teams[j].Id,
+                    //                    GroupId = group.Id
+                    //                });
+                    //            }
+                    //        }
+                    //    }
+
+                    //    context.Matches.AddRange(matches);
+                    //    context.SaveChanges();
+                    //}
+
+                    if (!context.Persons.Any())
                     {
-                        var players = new List<Player>();
-                        var teams = context.Teams.ToList();
+                        var persons = new List<Person>();
+                        var logins = new List<Login>();
                         var rnd = new Random();
 
+                        // Přidání trenérů
+                        var teams = context.Teams.ToList();
+                        foreach (var team in teams)
+                        {
+                            var person = new Person
+                            {
+                                FirstName = "Coach",
+                                LastName = $"Team{team.Id}",
+                                Email = $"coach{team.Id}@email.com",
+                                PhoneNumber = $"12345678{team.Id}",
+                                Address = "Coach Address",
+                                DateOfBirth = new DateTime(1985, 1, 1)
+                            };
+
+                            var login = new Login
+                            {
+                                Username = $"coach{team.Id}",
+                                Person = person
+                            };
+                            login.SetPassword("password");
+
+                            var coach = new Coach
+                            {
+                                Person = person,
+                                TeamId = team.Id,
+                                CategoryId = team.CategoryId,
+                                License = (char)('A' + rnd.Next(0, 3))
+                            };
+
+                            persons.Add(person);
+                            logins.Add(login);
+                            context.Coaches.Add(coach);
+                        }
+
+                        // Přidání rozhodčích
+                        for (int i = 1; i <= 10; i++)
+                        {
+                            var person = new Person
+                            {
+                                FirstName = $"Referee",
+                                LastName = $"Number{i}",
+                                Email = $"referee{i}@email.com",
+                                PhoneNumber = $"98765432{i}",
+                                Address = "Referee Address",
+                                DateOfBirth = new DateTime(1980, 5, 10)
+                            };
+
+                            var login = new Login
+                            {
+                                Username = $"referee{i}",
+                                Person = person
+                            };
+                            login.SetPassword("password");
+
+                            var referee = new Referee
+                            {
+                                Person = person,
+                                License = (char)('A' + rnd.Next(0, 3))
+                            };
+
+                            persons.Add(person);
+                            logins.Add(login);
+                            context.Referees.Add(referee);
+                        }
+
+                        // Přidání adminů
+                        for (int i = 1; i <= 2; i++)
+                        {
+                            var person = new Person
+                            {
+                                FirstName = $"Admin",
+                                LastName = $"Number{i}",
+                                Email = $"admin{i}@email.com",
+                                PhoneNumber = $"99999999{i}",
+                                Address = "Admin Address",
+                                DateOfBirth = new DateTime(1975, 3, 15)
+                            };
+
+                            var login = new Login
+                            {
+                                Username = $"admin{i}",
+                                Person = person
+                            };
+                            login.SetPassword("password");
+
+                            var admin = new Admin
+                            {
+                                Person = person
+                            };
+
+                            persons.Add(person);
+                            logins.Add(login);
+                            context.Admins.Add(admin);
+                        }
+
+                        // Přidání zapisovatelů
+                        for (int i = 1; i <= 5; i++)
+                        {
+                            var person = new Person
+                            {
+                                FirstName = $"Recorder",
+                                LastName = $"Number{i}",
+                                Email = $"recorder{i}@email.com",
+                                PhoneNumber = $"55555555{i}",
+                                Address = "Recorder Address",
+                                DateOfBirth = new DateTime(1990, 7, 20)
+                            };
+
+                            var login = new Login
+                            {
+                                Username = $"recorder{i}",
+                                Person = person
+                            };
+                            login.SetPassword("password");
+
+                            var recorder = new Recorder
+                            {
+                                Person = person
+                            };
+
+                            persons.Add(person);
+                            logins.Add(login);
+                            context.Recorders.Add(recorder);
+                        }
+
+                        // Přidání hráčů
                         foreach (var team in teams)
                         {
                             for (int i = 1; i <= rnd.Next(10, 14); i++) // Každý tým má 10-14 hráčů
                             {
-                                players.Add(new Player
+                                var person = new Person
                                 {
                                     FirstName = $"Player{i}",
                                     LastName = $"Team{team.Id}",
+                                    Email = $"player{i}{team.Id}@email.com",
+                                    PhoneNumber = $"77777777{i}",
+                                    Address = "Player Address",
+                                    DateOfBirth = new DateTime(2005, 6, rnd.Next(1, 30))
+                                };
+
+                                var login = new Login
+                                {
+                                    Username = $"player{i}{team.Id}",
+                                    Person = person
+                                };
+                                login.SetPassword("password");
+
+                                var player = new Player
+                                {
+                                    Person = person,
                                     Number = i,
                                     GoalCount = 0,
                                     SevenMeterGoalCount = 0,
@@ -148,131 +353,49 @@ namespace bc_handball_be.Infrastructure.Persistence
                                     YellowCardCount = 0,
                                     TeamId = team.Id,
                                     CategoryId = team.CategoryId
-                                });
+                                };
+
+                                persons.Add(person);
+                                logins.Add(login);
+                                context.Players.Add(player);
                             }
                         }
 
-                        context.Players.AddRange(players);
-                        context.SaveChanges();
-                    }
-
-                    if (!context.Matches.Any())
-                    {
-                        var matches = new List<Match>();
-                        var groups = context.Groups.ToList();
-                        var rnd = new Random();
-
-                        foreach (var group in groups)
+                        // Přidání ClubAdminů
+                        var clubs = context.Clubs.ToList();
+                        foreach (var club in clubs)
                         {
-                            var teams = context.Teams.Where(t => t.GroupId == group.Id).ToList();
-                            for (int i = 0; i < teams.Count; i++)
+                            var person = new Person
                             {
-                                for (int j = i + 1; j < teams.Count; j++)
-                                {
-                                    matches.Add(new Match
-                                    {
-                                        Time = DateTime.Now.AddDays(rnd.Next(1, 3)), 
-                                        TimePlayed = "00:00",
-                                        Playground = $"Hřiště {rnd.Next(1, 5)}", 
-                                        Score = "0:0",
-                                        State = MatchState.None,
-                                        HomeTeamId = teams[i].Id,
-                                        AwayTeamId = teams[j].Id,
-                                        GroupId = group.Id
-                                    });
-                                }
-                            }
-                        }
-
-                        context.Matches.AddRange(matches);
-                        context.SaveChanges();
-                    }
-
-                    if (!context.Persons.Any())
-                    {
-                        var persons = new List<Person>();
-                        var teams = context.Teams.ToList();
-                        var matches = context.Matches.ToList();
-                        var rnd = new Random();
-
-                        // Přidání trenérů ke každému týmu
-                        foreach (var team in teams)
-                        {
-                            var coach = new Coach
-                            {
-                                FirstName = "Coach",
-                                LastName = $"Team{team.Id}",
-                                Email = $"coach{team.Id}@email.com",
-                                PhoneNumber = $"12345678{team.Id}",
-                                Username = $"coach{team.Id}",
-                                Role = UserRole.Coach,
-                                TeamId = team.Id,
-                                CategoryId = team.CategoryId,
-                                License = (char)('A' + rnd.Next(0, 3))
+                                FirstName = $"ClubAdmin",
+                                LastName = $"{club.Name}",
+                                Email = $"admin{club.Id}@email.com",
+                                PhoneNumber = $"66666666{club.Id}",
+                                Address = "Club Admin Address",
+                                DateOfBirth = new DateTime(1980, 4, 15)
                             };
-                            coach.SetPassword("password"); // Všichni mají stejné heslo
-                            persons.Add(coach);
-                        }
 
-                        // Přidání rozhodčích
-                        for (int i = 1; i <= 10; i++)
-                        {
-                            var referee = new Referee
+                            var login = new Login
                             {
-                                FirstName = $"Referee",
-                                LastName = $"Number{i}",
-                                Email = $"referee{i}@email.com",
-                                PhoneNumber = $"98765432{i}",
-                                Username = $"referee{i}",
-                                Role = UserRole.Referee,
-                                License = (char)('A' + rnd.Next(0, 3))
+                                Username = $"clubadmin{club.Id}",
+                                Person = person
                             };
-                            referee.SetPassword("password");
-                            persons.Add(referee);
-                        }
+                            login.SetPassword("password");
 
-                        // Přidání adminů
-                        for (int i = 1; i <= 2; i++)
-                        {
-                            var admin = new Admin
+                            var clubAdmin = new ClubAdmin
                             {
-                                FirstName = $"Admin",
-                                LastName = $"Number{i}",
-                                Email = $"admin{i}@email.com",
-                                PhoneNumber = $"99999999{i}",
-                                Username = $"admin{i}",
-                                Role = UserRole.Admin
+                                Person = person,
+                                ClubId = club.Id
                             };
-                            admin.SetPassword("password");
-                            persons.Add(admin);
+
+                            persons.Add(person);
+                            logins.Add(login);
+                            context.ClubAdmins.Add(clubAdmin);
                         }
 
-                        // Přidání zapisovatelů
-                        for (int i = 1; i <= 5; i++)
-                        {
-                            var recorder = new Recorder
-                            {
-                                FirstName = $"Recorder",
-                                LastName = $"Number{i}",
-                                Email = $"recorder{i}@email.com",
-                                PhoneNumber = $"55555555{i}",
-                                Username = $"recorder{i}",
-                                Role = UserRole.Recorder
-                            };
-                            recorder.SetPassword("password");
-                            persons.Add(recorder);
-                        }
-
+                        // Uložení osob a loginů do databáze
                         context.Persons.AddRange(persons);
-                        context.SaveChanges();
-
-                        // Přiřazení rozhodčích k zápasům
-                        var referees = context.Persons.OfType<Referee>().ToList();
-                        foreach (var match in matches)
-                        {
-                            match.MainRefereeId = referees[rnd.Next(referees.Count)].Id;
-                            match.AssistantRefereeId = referees[rnd.Next(referees.Count)].Id;
-                        }
+                        context.Logins.AddRange(logins);
                         context.SaveChanges();
                     }
                 }

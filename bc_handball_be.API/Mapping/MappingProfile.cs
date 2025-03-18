@@ -87,14 +87,14 @@ namespace bc_handball_be.API.Mapping
             CreateMap<Match, MatchDTO>()
                 .ForMember(dest => dest.State, opt => opt.MapFrom(src => src.State.ToString()))
                 .ForMember(dest => dest.HomeTeam, opt => opt.MapFrom(src => src.HomeTeam))
-    .ForMember(dest => dest.AwayTeam, opt => opt.MapFrom(src => src.AwayTeam))
-    .ForMember(dest => dest.Group, opt => opt.MapFrom(src => src.Group));
+                .ForMember(dest => dest.AwayTeam, opt => opt.MapFrom(src => src.AwayTeam))
+                .ForMember(dest => dest.Group, opt => opt.MapFrom(src => src.Group));
 
             CreateMap<Match, MatchDetailDTO>()
                 .IncludeBase<Match, MatchDTO>()
                 .ForMember(dest => dest.Events, opt => opt.MapFrom(src => src.Events))
-                .ForMember(dest => dest.MainRefereeName, opt => opt.MapFrom(src => src.MainReferee != null ? $"{src.MainReferee.FirstName} {src.MainReferee.LastName}" : null))
-                .ForMember(dest => dest.AssistantRefereeName, opt => opt.MapFrom(src => src.AssistantReferee != null ? $"{src.AssistantReferee.FirstName} {src.AssistantReferee.LastName}" : null));
+                .ForMember(dest => dest.MainRefereeName, opt => opt.MapFrom(src => src.MainReferee != null ? $"{src.MainReferee.Person.FirstName} {src.MainReferee.Person.LastName}" : null))
+                .ForMember(dest => dest.AssistantRefereeName, opt => opt.MapFrom(src => src.AssistantReferee != null ? $"{src.AssistantReferee.Person.FirstName} {src.AssistantReferee.Person.LastName}" : null));
 
             // Tournament
             CreateMap<Tournament, TournamentDTO>()
@@ -109,23 +109,23 @@ namespace bc_handball_be.API.Mapping
 
             // Person
             CreateMap<Person, PersonDTO>()
-                .ForMember(dest => dest.Role, opt => opt.MapFrom(src => src.Role.ToString()));
+                .ForMember(dest => dest.Username, opt => opt.MapFrom(src => src.Login.Username))
+                .ForMember(dest => dest.Role, opt => opt.Ignore());
 
-            CreateMap<RegisterDTO, Person>()
-    .ForMember(dest => dest.Role, opt => opt.MapFrom(src => Enum.Parse<UserRole>(src.Role, true)));
+            CreateMap<RegisterDTO, Person>();
 
 
             CreateMap<Person, PersonDetailDTO>()
                 .IncludeBase<Person, PersonDTO>();
 
-            // Referee
-            CreateMap<Referee, RefereeDTO>()
-                .IncludeBase<Person, PersonDTO>();
+            //// Referee
+            //CreateMap<Referee, RefereeDTO>()
+            //    .IncludeBase<Person, PersonDTO>();
 
-            CreateMap<Referee, RefereeDetailDTO>()
-                .IncludeBase<Referee, RefereeDTO>()
-                .ForMember(dest => dest.MainRefereeMatchIds, opt => opt.MapFrom(src => src.MainRefereeMatches.Select(m => m.Id)))
-                .ForMember(dest => dest.AssistantRefereeMatchIds, opt => opt.MapFrom(src => src.AssistantRefereeMatches.Select(m => m.Id)));
+            //CreateMap<Referee, RefereeDetailDTO>()
+            //    .IncludeBase<Referee, RefereeDTO>()
+            //    .ForMember(dest => dest.MainRefereeMatchIds, opt => opt.MapFrom(src => src.MainRefereeMatches.Select(m => m.Id)))
+            //    .ForMember(dest => dest.AssistantRefereeMatchIds, opt => opt.MapFrom(src => src.AssistantRefereeMatches.Select(m => m.Id)));
         }
     }
 }

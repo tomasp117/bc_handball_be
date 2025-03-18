@@ -52,5 +52,10 @@ namespace bc_handball_be.Core.Services
             await _groupRepository.SaveGroupsAsync(validGroups, categoryId);
             _logger.LogInformation("Groups saved successfully for category {CategoryId}", categoryId);
         }
+
+        public async Task<IEnumerable<Group>> GetGroupsByCategoryAsync(int categoryId)
+        {
+            return await _groupRepository.GetGroupsByCategoryAsync(categoryId);
+        }
     }
 }

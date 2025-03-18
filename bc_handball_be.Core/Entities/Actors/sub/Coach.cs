@@ -1,6 +1,8 @@
-﻿namespace bc_handball_be.Core.Entities.Actors.sub
+﻿using bc_handball_be.Core.Entities.IdentityField;
+
+namespace bc_handball_be.Core.Entities.Actors.sub
 {
-    public class Coach : super.Person
+    public class Coach : BasePersonRole
     {
         public int? PlayerVoteId { get; set; }
         public int? GoalkeeperVoteId { get; set; }

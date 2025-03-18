@@ -1,6 +1,8 @@
-﻿namespace bc_handball_be.Core.Entities.Actors.sub
+﻿using bc_handball_be.Core.Entities.IdentityField;
+
+namespace bc_handball_be.Core.Entities.Actors.sub
 {
-    public class Referee : super.Person
+    public class Referee : BasePersonRole
     {
         public char License { get; set; }
 

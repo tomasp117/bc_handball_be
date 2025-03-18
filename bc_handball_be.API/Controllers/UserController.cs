@@ -29,8 +29,11 @@ namespace bc_handball_be.API.Controllers
         [HttpGet("{username}")]
         public async Task<ActionResult<Person>> GetUser(string username)
         {
-            var user = await _userRepository.GetUserByUsernameAsync(username);
-            if (user == null) return NotFound("User not found");
+            var login = await _userRepository.GetLoginByUsernameAsync(username);
+            if (login == null)
+                return NotFound();
+
+            var user = login.Person;
             return Ok(user);
         }
     }

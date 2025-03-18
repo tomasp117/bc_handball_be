@@ -10,6 +10,8 @@ using System.Text;
 using System.Threading.Tasks;
 using bc_handball_be.Core.Interfaces.IRepositories;
 using bc_handball_be.Core.Interfaces.IServices;
+using bc_handball_be.Core.Entities.Actors.sub;
+using bc_handball_be.Core.Entities;
 
 namespace bc_handball_be.Core.Services
 {
@@ -26,40 +28,60 @@ namespace bc_handball_be.Core.Services
 
         public async Task<string?> AuthenticateAsync(string username, string password)
         {
-            var user = await _userRepository.GetUserByUsernameAsync(username);
-            if (user == null || !user.VerifyPassword(password))
+            var login = await _userRepository.GetLoginByUsernameAsync(username);
+            if (login == null || !login.VerifyPassword(password))
                 return null;
 
-            return GenerateJwtToken(user);
+            return await GenerateJwtToken(login.Person);
         }
 
-        public async Task<bool> RegisterAsync(Person user, string password)
+        public async Task<bool> RegisterAsync(Person user, string username, string password, object roleEntity)
         {
-            if (await _userRepository.GetUserByUsernameAsync(user.Username) != null)
+            // Ověření, zda už uživatel s tímto username existuje
+            if (await _userRepository.GetLoginByUsernameAsync(username) != null)
                 return false;
 
-            user.SetPassword(password);
-            await _userRepository.AddUserAsync(user);
+            // Vytvoření loginu
+            var login = new Login
+            {
+                Username = username,
+                Person = user
+            };
+            login.SetPassword(password);
+            user.Login = login;
+
+            // Přidání uživatele, loginu a role přes repository
+            await _userRepository.AddUserWithRoleAsync(user, login.Username, login.Password, roleEntity);
+
             return true;
         }
 
-        private string GenerateJwtToken(Person user)
+
+        private async Task<string> GenerateJwtToken(Person user)
         {
             var key = Encoding.ASCII.GetBytes(_configuration["JwtSettings:Secret"]);
             var tokenHandler = new JwtSecurityTokenHandler();
+            var role = await GetUserRoleAsync(user); 
+
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(new[]
                 {
-                    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                    new Claim(ClaimTypes.Name, user.Username),
-                    new Claim(ClaimTypes.Role, user.Role.ToString())
-                }),
+            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new Claim(ClaimTypes.Name, user.Login!.Username),  // Použití Login.Username
+            new Claim(ClaimTypes.Role, role) // Opraveno!
+        }),
                 Expires = DateTime.UtcNow.AddHours(int.Parse(_configuration["JwtSettings:ExpireHours"])),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
+
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
+        }
+
+        private async Task<string> GetUserRoleAsync(Person user)
+        {
+            return await _userRepository.GetUserRoleAsync(user.Id);
         }
     }
 }

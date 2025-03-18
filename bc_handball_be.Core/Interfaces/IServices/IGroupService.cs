@@ -10,5 +10,6 @@ namespace bc_handball_be.Core.Interfaces.IServices
     public interface IGroupService
     {
         Task SaveGroupsAsync(IEnumerable<Group> newGroups, int categoryId);
+        Task<IEnumerable<Group>> GetGroupsByCategoryAsync(int categoryId);
     }
 }

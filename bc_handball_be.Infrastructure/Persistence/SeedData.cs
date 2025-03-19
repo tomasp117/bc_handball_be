@@ -97,14 +97,15 @@ namespace bc_handball_be.Infrastructure.Persistence
                         tournamentInstance = context.TournamentInstances.First();
 
                         int clubIdx = 0;
-
+                        int j = 0;
                         foreach (var category in categories)
                         {
+                            
                             //var categoryGroups = groups.Where(g => g.CategoryId == category.Id).ToList();
 
                             //foreach (var group in categoryGroups)
                             //{
-                                for (int i = 1; i <= 5; i++)
+                                for (int i = 1; i <= 18 + j; i++)
                                 {
                                     var team = new Team
                                     {
@@ -117,6 +118,8 @@ namespace bc_handball_be.Infrastructure.Persistence
                                     teams.Add(team);
                                     clubIdx++;
                                 }
+
+                            j++;
                             //}
                         }
 

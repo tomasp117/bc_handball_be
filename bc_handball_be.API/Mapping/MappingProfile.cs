@@ -47,8 +47,7 @@ namespace bc_handball_be.API.Mapping
             .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category != null ? src.Category.Name : string.Empty));
 
             // Category
-            CreateMap<Category, CategoryDTO>()
-            .ForMember(dest => dest.TournamentInstanceNum, opt => opt.MapFrom(src => src.TournamentInstance.EditionNumber));
+            CreateMap<Category, CategoryDTO>();
 
             CreateMap<Category, CategoryDetailDTO>()
             .IncludeBase<Category, CategoryDTO>()

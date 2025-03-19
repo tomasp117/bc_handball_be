@@ -24,11 +24,11 @@ namespace bc_handball_be.API.Controllers
         [HttpPost("save")]
         public async Task<IActionResult> SaveGroupsToDatabase(
             [FromBody] List<GroupDetailDTO> newGroups,
-            [FromQuery] int categoryId)
+            [FromQuery] int category)
         {
             if (newGroups == null || !newGroups.Any())
             {
-                _logger.LogWarning("No groups provided for category {CategoryId}", categoryId);
+                _logger.LogWarning("No groups provided for category {CategoryId}", category);
                 return BadRequest("No groups provided.");
             }
 
@@ -40,32 +40,32 @@ namespace bc_handball_be.API.Controllers
                 var validGroups = groups.Where(g => g.Teams.Any()).ToList();
                 if (!validGroups.Any())
                 {
-                    _logger.LogWarning("All provided groups are empty. No data will be saved for category {CategoryId}", categoryId);
+                    _logger.LogWarning("All provided groups are empty. No data will be saved for category {CategoryId}", category);
                     return BadRequest("All groups are empty. Cannot save.");
                 }
 
-                _logger.LogInformation("Saving {Count} new groups for category {CategoryId}", validGroups.Count, categoryId);
-                await _groupService.SaveGroupsAsync(validGroups, categoryId);
+                _logger.LogInformation("Saving {Count} new groups for category {CategoryId}", validGroups.Count, category);
+                await _groupService.SaveGroupsAsync(validGroups, category);
 
-                _logger.LogInformation("Groups for category {CategoryId} saved successfully", categoryId);
+                _logger.LogInformation("Groups for category {CategoryId} saved successfully", category);
                 return Ok("Groups saved successfully.");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error saving groups for category {CategoryId}", categoryId);
+                _logger.LogError(ex, "Error saving groups for category {CategoryId}", category);
                 return StatusCode(500, "An error occurred while saving groups.");
             }
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetGroupsForCategory([FromQuery] int categoryId)
+        public async Task<IActionResult> GetGroupsForCategory([FromQuery] int category)
         {
             try
             {
-                var groups = await _groupService.GetGroupsByCategoryAsync(categoryId);
+                var groups = await _groupService.GetGroupsByCategoryAsync(category);
                 if (groups == null || !groups.Any())
                 {
-                    _logger.LogWarning("No groups found for category {CategoryId}", categoryId);
+                    _logger.LogWarning("No groups found for category {CategoryId}", category);
                     return NotFound("No groups found.");
                 }
                 var groupDTOs = _mapper.Map<List<GroupDetailDTO>>(groups);
@@ -73,7 +73,7 @@ namespace bc_handball_be.API.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting groups for category {CategoryId}", categoryId);
+                _logger.LogError(ex, "Error getting groups for category {CategoryId}", category);
                 return StatusCode(500, "An error occurred while getting groups.");
             }
         }

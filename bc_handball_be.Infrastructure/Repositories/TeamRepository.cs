@@ -41,7 +41,7 @@ namespace bc_handball_be.Infrastructure.Repositories
 
         public async Task<IEnumerable<Team>> GetTeamsAsync()
         {
-            return await _context.Teams.ToListAsync();
+            return await _context.Teams.Include(t => t.Category).ToListAsync();
         }
 
         public async Task<IEnumerable<Team>> GetTeamsByCategoryAsync(int categoryId)
@@ -61,6 +61,14 @@ namespace bc_handball_be.Infrastructure.Repositories
                 _logger.LogError(ex, "Error fetching teams for categoryId: {CategoryId}", categoryId);
                 throw;
             }
+        }
+
+        public async Task<List<Team>> GetTeamsByGroupAsync(int groupId)
+        {
+            return await _context.Teams
+                .Include(t => t.Category)
+                .Where(t => t.GroupId == groupId)
+                .ToListAsync();
         }
 
         public async Task<IEnumerable<Team>> GetTeamsByIdAsync(IEnumerable<int> ids)

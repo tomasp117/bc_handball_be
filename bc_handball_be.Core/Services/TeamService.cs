@@ -110,9 +110,9 @@ namespace bc_handball_be.Core.Services
             throw new NotImplementedException();
         }
 
-        public Task<IEnumerable<Team>> GetTeamsAsync()
+        public async Task<IEnumerable<Team>> GetTeamsAsync()
         {
-            throw new NotImplementedException();
+            return await _teamRepository.GetTeamsAsync();
         }
 
         public async Task<IEnumerable<Team>> GetTeamsByCategoryAsync(int categoryId)
@@ -161,5 +161,23 @@ namespace bc_handball_be.Core.Services
             }
         }
 
+        public async Task<List<Team>> GetTeamsByGroupAsync(int groupId)
+        {
+            _logger.LogInformation("Fetching teams for groupId: {GroupId}", groupId);
+            try
+            {
+                var teams = await _teamRepository.GetTeamsByGroupAsync(groupId);
+                if (!teams.Any())
+                {
+                    _logger.LogWarning("No teams found for the given group: {GroupId}", groupId);
+                }
+                return teams;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching teams for groupId: {GroupId}", groupId);
+                throw;
+            }
+        }
     }
 }

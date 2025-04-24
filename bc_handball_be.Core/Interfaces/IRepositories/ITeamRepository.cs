@@ -16,5 +16,6 @@ namespace bc_handball_be.Core.Interfaces.IRepositories
         Task UpdateTeamAsync(Team team);
         Task DeleteTeamAsync(int id);
         Task<IEnumerable<Team>> GetTeamsByIdAsync(IEnumerable<int> ids);
+        Task<List<Team>> GetTeamsByGroupAsync(int groupId);
     }
 }

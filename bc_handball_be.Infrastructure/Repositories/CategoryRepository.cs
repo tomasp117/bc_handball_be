@@ -29,5 +29,17 @@ namespace bc_handball_be.Infrastructure.Repositories
             var categories = await _context.Categories.ToListAsync();
             return categories;
         }
+
+        public async Task<Category> GetCategoryByIdAsync(int id)
+        {
+            _logger.LogInformation("Fetching category with id {id}", id);
+            var category = await _context.Categories.FirstOrDefaultAsync(c => c.Id == id);
+            if(category == null)
+            {
+                _logger.LogWarning("Category with id {id} not found", id);
+                return null;
+            }
+            return category;
+        }
     }
 }

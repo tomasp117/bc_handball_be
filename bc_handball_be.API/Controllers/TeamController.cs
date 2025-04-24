@@ -54,7 +54,7 @@ namespace bc_handball_be.API.Controllers
         [HttpPost("assign-groups")]
         public async Task<ActionResult> AssignTeamsToGroups(
             [FromBody] IEnumerable<TeamGroupAssignDTO> teamDtos,
-            [FromQuery] int categoryId)
+            [FromQuery] int category)
         {
             _logger.LogInformation("Assigning teams to groups");
 
@@ -79,7 +79,7 @@ namespace bc_handball_be.API.Controllers
                     );
                 }).ToList();
 
-                var variants = await _teamService.AssignTeamsToGroupsAsync(enrichedTeams, categoryId);
+                var variants = await _teamService.AssignTeamsToGroupsAsync(enrichedTeams, category);
 
                 // 🟢 Namapujeme odpověď pro frontend
                 var response = variants.Select(variant => new

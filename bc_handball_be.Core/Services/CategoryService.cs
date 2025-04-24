@@ -26,5 +26,11 @@ namespace bc_handball_be.Core.Services
         {
             return await categoryRepository.GetCategoriesAsync();   
         }
+
+        public async Task<Category> GetCategoryByIdAsync(int id)
+        {
+            return await categoryRepository.GetCategoryByIdAsync(id);
+        }
+
     }
 }

@@ -7,9 +7,8 @@ using System.Threading.Tasks;
 
 namespace bc_handball_be.Core.Interfaces.IRepositories
 {
-    public interface ICategoryRepository
+    public interface IClubRepository
     {
-        public Task<IEnumerable<Category>> GetCategoriesAsync();
-        public Task<Category> GetCategoryByIdAsync(int id);
+        Task AddClubAsync(Club club);
     }
 }

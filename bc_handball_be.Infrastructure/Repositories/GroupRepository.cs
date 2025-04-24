@@ -28,6 +28,7 @@ namespace bc_handball_be.Infrastructure.Repositories
 
             var groups = await _context.Groups
                 .Include(g => g.Teams)
+                .Include(t => t.Category)
                 .Where(g => g.CategoryId == categoryId)
                 .ToListAsync();
 
@@ -89,6 +90,17 @@ namespace bc_handball_be.Infrastructure.Repositories
                 _logger.LogError(ex, "Error while saving groups. Transaction rolled back.");
                 throw;
             }
+        }
+
+        public async Task<List<Group>> GetGroupsAsync()
+        {
+            _logger.LogInformation("Fetching all groups");
+            var groups = await _context.Groups
+                .Include(g => g.Teams)
+                .Include(g => g.Category)
+                .ToListAsync();
+            _logger.LogInformation("Fetched {Count} groups", groups.Count);
+            return groups;
         }
 
     }

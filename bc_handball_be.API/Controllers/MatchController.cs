@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using bc_handball_be.API.DTOs;
 using bc_handball_be.Core.Entities;
+using bc_handball_be.Core.Interfaces.IServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -8,72 +9,72 @@ using Microsoft.AspNetCore.Mvc;
 namespace bc_handball_be.API.Controllers
 {
     
-    [Route("api/[controller]")]
-    [Authorize]
+    [Route("api/matches")]
     [ApiController]
     public class MatchController : ControllerBase
     {
         private readonly IMapper _mapper;
+        private readonly ILogger<MatchController> _logger;
+        private readonly IMatchService _matchService;
 
-        public MatchController(IMapper mapper)
+        public MatchController(IMapper mapper, ILogger<MatchController> logger, IMatchService matchService)
         {
-            this._mapper = mapper;
-
+            _mapper = mapper;
+            _logger = logger;
+            _matchService = matchService;
         }
 
-        [HttpGet("id")]
-        public ActionResult<MatchDTO> GetMatch(int id)
+        [HttpPost("generate-blank")]
+        public async Task<IActionResult> GenerateBlankMatches()
         {
-            var testMatch = new Match
-            {
-                Id = id,
-                Time = DateTime.Now,
-                TimePlayed = "15:30",
-                Playground = "Hala A",
-                Score = "25:22",
-                State = MatchState.Pending,
-                HomeTeam = new Team { Id = 1, Name = "Team A" },
-                AwayTeam = new Team { Id = 2, Name = "Team B" },
-                Group = new Group { Id = 1, Name = "Group A" }
-            };
+            _logger.LogInformation("Generating blank matches for tournament.");
+            var matches = await _matchService.GenBlankMatches();
+            return Ok(matches);
+        }
 
-            var dto = _mapper.Map<MatchDTO>(testMatch);
-            return Ok(dto);
+        [HttpPost("assign-group-matches/{categoryId}")]
+        public async Task<IActionResult> AssignGroupMatches(int categoryId)
+        {
+            _logger.LogInformation("Assigning group matches for category {categoryId}", categoryId);
+            var matches = await _matchService.AssignGroupMatchesFromScratch(categoryId);
+            var dtos = _mapper.Map<List<MatchDTO>>(matches);
+            return Ok(dtos);
+        }
+
+        [HttpPost("assign-all-group-matches")]
+        public async Task<IActionResult> AssignAllGroupMatches()
+        {
+            _logger.LogInformation("Assigning all group matches");
+            var matches = await _matchService.AssignAllGroupMatchesFromScratch();
+            var dtos = _mapper.Map<List<MatchDTO>>(matches);
+            return Ok(dtos);
         }
 
         [HttpGet]
-        public ActionResult<List<MatchDTO>> GetTestMatches()
+        public async Task<IActionResult> GetMatches()
         {
-            var testMatches = new List<Match>
-            {
-                new Match
-                {
-                    Id = 1,
-                    Time = DateTime.Now,
-                    TimePlayed = "15:30",
-                    Playground = "Hala A",
-                    Score = "25:22",
-                    State = MatchState.Pending,
-                    HomeTeam = new Team { Id = 1, Name = "Team A" },
-                    AwayTeam = new Team { Id = 2, Name = "Team B" },
-                    Group = new Group { Id = 1, Name = "Group A" }
-                },
-                new Match
-                {
-                    Id = 2,
-                    Time = DateTime.Now.AddHours(2),
-                    TimePlayed = "18:00",
-                    Playground = "Hala B",
-                    Score = "30:28",
-                    State = MatchState.Done,
-                    HomeTeam = new Team { Id = 3, Name = "Team C" },
-                    AwayTeam = new Team { Id = 4, Name = "Team D" },
-                    Group = new Group { Id = 2, Name = "Group B" }
-                }
-            };
-
-            var dtos = _mapper.Map<List<MatchDTO>>(testMatches);
+            _logger.LogInformation("Fetching matches");
+            var matches = await _matchService.GetMatchesAsync();
+            var dtos = _mapper.Map<List<MatchDTO>>(matches);
             return Ok(dtos);
         }
+
+        [HttpGet("unassigned-group-matches/{categoryId}")]
+        public async Task<ActionResult<List<UnassignedMatchDTO>>> GetUnassignedGroupMatches(int categoryId)
+        {
+            var matches = await _matchService.GetUnassignedGroupMatches(categoryId);
+
+            var dto = _mapper.Map<List<UnassignedMatchDTO>>(matches);
+            return Ok(dto);
+        }
+
+        [HttpPut("update-batch")]
+        public async Task<IActionResult> UpdateBatch([FromBody] List<MatchAssignmentDTO> assignments)
+        {
+            var assignmentEntities = _mapper.Map<List<Match>>(assignments);
+            await _matchService.UpdateMatchesAsync(assignmentEntities);
+            return Ok();
+        }
+
     }
 }

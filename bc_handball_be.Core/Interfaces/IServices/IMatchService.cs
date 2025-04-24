@@ -1,4 +1,6 @@
-﻿using System;
+﻿using bc_handball_be.Core.Entities;
+using bc_handball_be.Core.Services.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,5 +10,12 @@ namespace bc_handball_be.Core.Interfaces.IServices
 {
     public interface IMatchService
     {
+        Task<List<Match>> GenBlankMatches();
+        //Task<List<Match>> GenerateMatchesForGroupStage(int category);
+        Task<List<Match>> AssignGroupMatchesFromScratch(int categoryId);
+        Task<List<Match>> GetMatchesAsync();
+        Task<List<UnassignedMatch>> GetUnassignedGroupMatches(int categoryId);
+        Task UpdateMatchesAsync(List<Match> assignments);
+        Task<List<Match>> AssignAllGroupMatchesFromScratch();
     }
 }

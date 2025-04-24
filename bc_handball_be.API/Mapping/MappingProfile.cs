@@ -3,6 +3,7 @@ using bc_handball_be.API.DTOs;
 using bc_handball_be.Core.Entities;
 using bc_handball_be.Core.Entities.Actors.sub;
 using bc_handball_be.Core.Entities.Actors.super;
+using bc_handball_be.Core.Services.Models;
 
 namespace bc_handball_be.API.Mapping
 {
@@ -89,11 +90,27 @@ namespace bc_handball_be.API.Mapping
                 .ForMember(dest => dest.AwayTeam, opt => opt.MapFrom(src => src.AwayTeam))
                 .ForMember(dest => dest.Group, opt => opt.MapFrom(src => src.Group));
 
+
             CreateMap<Match, MatchDetailDTO>()
                 .IncludeBase<Match, MatchDTO>()
                 .ForMember(dest => dest.Events, opt => opt.MapFrom(src => src.Events))
                 .ForMember(dest => dest.MainRefereeName, opt => opt.MapFrom(src => src.MainReferee != null ? $"{src.MainReferee.Person.FirstName} {src.MainReferee.Person.LastName}" : null))
                 .ForMember(dest => dest.AssistantRefereeName, opt => opt.MapFrom(src => src.AssistantReferee != null ? $"{src.AssistantReferee.Person.FirstName} {src.AssistantReferee.Person.LastName}" : null));
+            
+            CreateMap<UnassignedMatch, UnassignedMatchDTO>()
+                .ForMember(dest => dest.HomeTeamId, opt => opt.MapFrom(src => src.HomeTeam.Id))
+                .ForMember(dest => dest.HomeTeamName, opt => opt.MapFrom(src => src.HomeTeam.Name))
+                .ForMember(dest => dest.AwayTeamId, opt => opt.MapFrom(src => src.AwayTeam.Id))
+                .ForMember(dest => dest.AwayTeamName, opt => opt.MapFrom(src => src.AwayTeam.Name))
+                .ForMember(dest => dest.GroupId, opt => opt.MapFrom(src => src.Group.Id))
+                .ForMember(dest => dest.GroupName, opt => opt.MapFrom(src => src.Group.Name));
+
+            CreateMap<MatchAssignmentDTO, Match>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.MatchId))
+                .ForMember(dest => dest.HomeTeamId, opt => opt.MapFrom(src => src.HomeTeamId))
+                .ForMember(dest => dest.AwayTeamId, opt => opt.MapFrom(src => src.AwayTeamId))
+                .ForMember(dest => dest.GroupId, opt => opt.MapFrom(src => src.GroupId))
+                .ForMember(dest => dest.State, opt => opt.MapFrom(_ => MatchState.None));
 
             // Tournament
             CreateMap<Tournament, TournamentDTO>()

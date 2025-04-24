@@ -11,5 +11,6 @@ namespace bc_handball_be.Core.Interfaces.IServices
     {
         Task SaveGroupsAsync(IEnumerable<Group> newGroups, int categoryId);
         Task<IEnumerable<Group>> GetGroupsByCategoryAsync(int categoryId);
+        Task<List<Group>> GetGroupsAsync();
     }
 }

@@ -57,5 +57,11 @@ namespace bc_handball_be.Core.Services
         {
             return await _groupRepository.GetGroupsByCategoryAsync(categoryId);
         }
+
+        public async Task<List<Group>> GetGroupsAsync()
+        {
+            var groups = await _groupRepository.GetGroupsAsync();
+            return groups.ToList();
+        }
     }
 }

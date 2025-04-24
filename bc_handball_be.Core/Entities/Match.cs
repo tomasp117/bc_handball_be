@@ -29,11 +29,11 @@ namespace bc_handball_be.Core.Entities
 
         // Foreign keys
         // Teams
-        public int HomeTeamId { get; set; }
-        public Team HomeTeam { get; set; } = null!;
+        public int? HomeTeamId { get; set; }
+        public Team? HomeTeam { get; set; } = null!;
 
-        public int AwayTeamId { get; set; }
-        public Team AwayTeam { get; set; } = null!;
+        public int? AwayTeamId { get; set; }
+        public Team? AwayTeam { get; set; } = null!;
 
         // Referees
         public int? MainRefereeId { get; set; }
@@ -43,8 +43,8 @@ namespace bc_handball_be.Core.Entities
         public Referee? AssistantReferee { get; set; } = null!;
 
         // Group
-        public int GroupId { get; set; }
-        public Group Group { get; set; } = null!;
+        public int? GroupId { get; set; }
+        public Group? Group { get; set; } = null!;
 
     }
 }

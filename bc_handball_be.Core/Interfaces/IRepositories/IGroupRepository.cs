@@ -11,5 +11,6 @@ namespace bc_handball_be.Core.Interfaces.IRepositories
     {
         Task<IEnumerable<Group>> GetGroupsByCategoryAsync(int categoryId);
         Task SaveGroupsAsync(IEnumerable<Group> newGroups, int categoryId);
+        Task<List<Group>> GetGroupsAsync();
     }
 }

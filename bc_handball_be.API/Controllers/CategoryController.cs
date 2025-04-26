@@ -44,6 +44,29 @@ namespace bc_handball_be.API.Controllers
             }
         }
 
+        [HttpGet("{id}")]
+        public async Task<ActionResult<CategoryDetailDTO>> GetCategoryById(int id)
+        {
+            try
+            {
+                var category = await _categoryService.GetCategoryByIdAsync(id);
+                if (category == null)
+                {
+                    _logger.LogWarning("Category with ID {Id} not found.", id);
+                    return NotFound($"Category with ID {id} not found.");
+                }
+
+                var categoryDto = _mapper.Map<CategoryDetailDTO>(category);
+
+                return Ok(category);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching category with ID {Id}", id);
+                return StatusCode(500, "An error occurred while fetching the category.");
+            }
+        }
+
 
     }
 }

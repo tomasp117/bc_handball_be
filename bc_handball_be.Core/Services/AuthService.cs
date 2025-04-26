@@ -12,6 +12,7 @@ using bc_handball_be.Core.Interfaces.IRepositories;
 using bc_handball_be.Core.Interfaces.IServices;
 using bc_handball_be.Core.Entities.Actors.sub;
 using bc_handball_be.Core.Entities;
+using Microsoft.Extensions.Logging;
 
 namespace bc_handball_be.Core.Services
 {
@@ -19,39 +20,40 @@ namespace bc_handball_be.Core.Services
     {
         private readonly IUserRepository _userRepository;
         private readonly IConfiguration _configuration;
+        private readonly ILogger<AuthService> _logger;
 
-        public AuthService(IUserRepository userRepository, IConfiguration configuration)
+        public AuthService(IUserRepository userRepository, IConfiguration configuration, ILogger<AuthService> logger)
         {
             _userRepository = userRepository;
             _configuration = configuration;
+            _logger = logger;
         }
 
         public async Task<string?> AuthenticateAsync(string username, string password)
         {
             var login = await _userRepository.GetLoginByUsernameAsync(username);
-            if (login == null || !login.VerifyPassword(password))
+            if (login == null)
+            {
+                _logger.LogWarning("Login not found for username: {Username}", username);
                 return null;
+            }
+
+            if (login == null || !login.VerifyPassword(password))
+            {
+                _logger.LogWarning("Invalid password for username: {Username}", username);
+                return null;
+            }
+   
 
             return await GenerateJwtToken(login.Person);
         }
 
-        public async Task<bool> RegisterAsync(Person user, string username, string password, object roleEntity)
+        public async Task<bool> RegisterAsync(Person user, Login login, object roleEntity)
         {
-            // Ověření, zda už uživatel s tímto username existuje
-            if (await _userRepository.GetLoginByUsernameAsync(username) != null)
+            if (await _userRepository.GetLoginByUsernameAsync(login.Username) != null)
                 return false;
 
-            // Vytvoření loginu
-            var login = new Login
-            {
-                Username = username,
-                Person = user
-            };
-            login.SetPassword(password);
-            user.Login = login;
-
-            // Přidání uživatele, loginu a role přes repository
-            await _userRepository.AddUserWithRoleAsync(user, login.Username, login.Password, roleEntity);
+            await _userRepository.AddUserWithRoleAsync(user, login, roleEntity);
 
             return true;
         }

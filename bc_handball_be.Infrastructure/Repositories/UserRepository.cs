@@ -28,18 +28,8 @@ namespace bc_handball_be.Infrastructure.Repositories
                 .FirstOrDefaultAsync(l => l.Username == username);
         }
 
-        public async Task AddUserWithRoleAsync(Person user, string username, string password, object roleEntity)
+        public async Task AddUserWithRoleAsync(Person user, Login login, object roleEntity)
         {
-            // Vytvoření loginu
-            var login = new Login
-            {
-                Username = username,
-                Person = user
-            };
-            login.SetPassword(password);
-            user.Login = login;
-
-            // Uložení do databáze
             _context.Persons.Add(user);
             _context.Logins.Add(login);
 

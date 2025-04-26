@@ -13,16 +13,18 @@ namespace bc_handball_be.API.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
+        private readonly ILogger<AuthController> _logger;
 
-        public AuthController(IAuthService authService)
+        public AuthController(IAuthService authService, ILogger<AuthController> logger)
         {
             _authService = authService;
+            _logger = logger;
+
         }
 
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterDTO model)
         {
-            // Vytvoření osoby
             var person = new Person
             {
                 FirstName = model.FirstName,
@@ -33,16 +35,15 @@ namespace bc_handball_be.API.Controllers
                 DateOfBirth = model.DateOfBirth
             };
 
-            // Vytvoření loginu
             var login = new Login
             {
                 Username = model.Username,
                 Person = person
             };
-            login.SetPassword(model.Password);
+            login.SetPassword(model.Password); // ✅ nastavíme zde
+
             person.Login = login;
 
-            // Vytvoření role jako samostatné entity
             object roleEntity = model.Role.ToLower() switch
             {
                 "admin" => new Admin { Person = person },
@@ -57,18 +58,23 @@ namespace bc_handball_be.API.Controllers
             if (roleEntity == null)
                 return BadRequest("Invalid role");
 
-            // Uložení uživatele včetně role
-            var success = await _authService.RegisterAsync(person, model.Username, model.Password, roleEntity);
+            var success = await _authService.RegisterAsync(person, login, roleEntity);
             if (!success) return BadRequest("User already exists.");
 
             return Ok("User registered successfully.");
         }
 
+
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
             var token = await _authService.AuthenticateAsync(request.Username, request.Password);
-            if (token == null) return Unauthorized("Invalid username or password.");
+            if (token == null)
+            {
+                _logger.LogWarning("Failed login attempt for user {Username} {Password} ", request.Username, request.Password);
+                return Unauthorized("Invalid username or password.");
+            }
+            _logger.LogInformation("User {Username} logged in successfully.", request.Username);
             return Ok(new { Token = token });
         }
     }

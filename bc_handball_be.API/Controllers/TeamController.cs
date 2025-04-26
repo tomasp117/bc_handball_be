@@ -23,8 +23,8 @@ namespace bc_handball_be.API.Controllers
             _mapper = mapper;
         }
 
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<TeamGroupAssignDTO>>> GetTeamsByCategory([FromQuery] int? category)
+        [HttpGet("group-assign")]
+        public async Task<ActionResult<IEnumerable<TeamGroupAssignDTO>>> GetTeamsByCategoryGroupAssign([FromQuery] int? category)
         {
             _logger.LogInformation("Fetching teams for categoryId: {CategoryId}", category);
             if (category == null)
@@ -43,6 +43,34 @@ namespace bc_handball_be.API.Controllers
 
                 var teamGroupAssignDTOs = _mapper.Map<IEnumerable<TeamGroupAssignDTO>>(teams);
                 return Ok(teamGroupAssignDTOs);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching teams for categoryId: {CategoryId}", category);
+                return StatusCode(500, "An error occurred while fetching teams");
+            }
+        }
+
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<TeamGroupAssignDTO>>> GetTeamsByCategory([FromQuery] int? category)
+        {
+            _logger.LogInformation("Fetching teams for categoryId: {CategoryId}", category);
+            if (category == null)
+            {
+                _logger.LogWarning("Missing categoryId in request");
+                return BadRequest("CategoryId is required.");
+            }
+            try
+            {
+                var teams = await _teamService.GetTeamsByCategoryAsync(category.Value);
+                if (!teams.Any())
+                {
+                    _logger.LogWarning("No teams found for the given category: {CategoryId}", category);
+                    return NotFound("No teams found for the given category");
+                }
+
+                var teamDTO = _mapper.Map<IEnumerable<TeamDTO>>(teams);
+                return Ok(teamDTO);
             }
             catch (Exception ex)
             {

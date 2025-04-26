@@ -100,6 +100,12 @@ builder.Services.AddScoped<IMatchService, MatchService>();
 builder.Services.AddScoped<IMatchRepository, MatchRepository>();
 builder.Services.AddScoped<IClubRepository, ClubRepository>();
 builder.Services.AddScoped<IClubService, ClubService>();
+builder.Services.AddScoped<ICoachService, CoachService>();
+builder.Services.AddScoped<ICoachRepository, CoachRepository>();
+builder.Services.AddScoped<IPlayerService, PlayerService>();
+builder.Services.AddScoped<IPlayerRepository, PlayerRepository>();
+builder.Services.AddScoped<IPersonService, PersonService>();
+builder.Services.AddScoped<IPersonRepository, PersonRepository>();
 
 
 var app = builder.Build();
@@ -117,6 +123,7 @@ app.UseHttpsRedirection();
 app.MapControllers();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseStaticFiles();
 
 // Seed data
 using (var scope = app.Services.CreateScope()){

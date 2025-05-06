@@ -5,6 +5,7 @@ using bc_handball_be.Core.Interfaces.IServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace bc_handball_be.API.Controllers
 {
@@ -74,6 +75,31 @@ namespace bc_handball_be.API.Controllers
             var assignmentEntities = _mapper.Map<List<Match>>(assignments);
             await _matchService.UpdateMatchesAsync(assignmentEntities);
             return Ok();
+        }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetMatchById(int id)
+        {
+            var match = await _matchService.GetMatchByIdAsync(id);
+            if (match == null)
+            {
+                return NotFound();
+            }
+            var dto = _mapper.Map<MatchDTO>(match);
+            return Ok(dto);
+        }
+
+        [HttpPatch("{id}")]
+        public async Task<IActionResult> UpdateMatch(int id, [FromBody] MatchUpdateDTO dto)
+        {
+            _logger.LogInformation("Updating match with ID {id}", id);
+            var match = await _matchService.GetMatchByIdAsync(id);
+            if (match == null)
+                return NotFound();
+
+            _mapper.Map(dto, match);
+            await _matchService.UpdateMatchAsync(match);
+            return NoContent();
         }
 
     }

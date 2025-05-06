@@ -9,9 +9,9 @@
         public string Score { get; set; } = "0:0";
         public string State { get; set; } = "None";
 
-        public TeamDTO HomeTeam { get; set; } = null!;
+        public TeamDetailDTO HomeTeam { get; set; } = null!;
         public int? HomeTeamId { get; set; }
-        public TeamDTO AwayTeam { get; set; } = null!;
+        public TeamDetailDTO AwayTeam { get; set; } = null!;
         public int? AwayTeamId { get; set; }
         public GroupDTO Group { get; set; } = null!;
         public int? GroupId { get; set; }

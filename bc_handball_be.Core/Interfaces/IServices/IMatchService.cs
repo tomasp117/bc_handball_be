@@ -17,5 +17,7 @@ namespace bc_handball_be.Core.Interfaces.IServices
         Task<List<UnassignedMatch>> GetUnassignedGroupMatches(int categoryId);
         Task UpdateMatchesAsync(List<Match> assignments);
         Task<List<Match>> AssignAllGroupMatchesFromScratch();
+        Task<Match> GetMatchByIdAsync(int id);
+        Task UpdateMatchAsync(Match match);
     }
 }

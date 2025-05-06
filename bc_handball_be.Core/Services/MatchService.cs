@@ -888,6 +888,22 @@ namespace bc_handball_be.Core.Services
 
             await _matchRepository.SaveAsync();
         }
+
+        public async Task<Match> GetMatchByIdAsync(int id)
+        {
+            var match = await _matchRepository.GetMatchByIdAsync(id);
+            if(match == null)
+            {
+                _logger.LogWarning("Zápas s ID {Id} nebyl nalezen.", id);
+                return null;
+            }
+            return match;
+        }
+
+        public async Task UpdateMatchAsync(Match match)
+        {
+            await _matchRepository.UpdateMatchAsync(match);
+        }
     }
     
 }

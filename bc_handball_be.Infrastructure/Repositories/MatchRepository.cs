@@ -67,7 +67,16 @@ namespace bc_handball_be.Infrastructure.Repositories
         public async Task<Match?> GetMatchByIdAsync(int id)
         {
             _logger.LogInformation("Fetching match with ID {id}", id);
-            return await _context.Matches.FirstOrDefaultAsync(m => m.Id == id);
+            return await _context.Matches
+                .Include(m => m.HomeTeam)
+                    .ThenInclude(t => t.Players)
+                        .ThenInclude(p => p.Person)
+                .Include(m => m.AwayTeam)
+                    .ThenInclude(t => t.Players)
+                        .ThenInclude(p => p.Person)
+                .Include(m => m.Group)
+                .Include(m => m.Events)
+                .FirstOrDefaultAsync(m => m.Id == id);
         }
 
         public async Task<List<Match>> GetMatchesAsync()
@@ -75,9 +84,13 @@ namespace bc_handball_be.Infrastructure.Repositories
             _logger.LogInformation("Fetching matches");
             return await _context.Matches
                 .Include(m => m.HomeTeam)
+                    .ThenInclude(t => t.Players)
+                        .ThenInclude(p => p.Person)
                 .Include(m => m.AwayTeam)
+                    .ThenInclude(t => t.Players)
+                        .ThenInclude(p => p.Person)
                 .Include(m => m.Group)
-                .ThenInclude(g => g.Category)
+                    .ThenInclude(g => g.Category)
                 .ToListAsync();
         }
 

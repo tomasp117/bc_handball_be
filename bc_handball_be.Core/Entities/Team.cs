@@ -10,9 +10,8 @@ namespace bc_handball_be.Core.Entities
 
         // Navigation properties
         public ICollection<Player> Players { get; set; } = new List<Player>();
-        public ICollection<Coach> Coaches { get; set; } = new List<Coach>();
 
-
+        public Coach? Coach { get; set; }
 
         // Foreign keys
         public int ClubId { get; set; }

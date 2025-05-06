@@ -21,8 +21,8 @@ namespace bc_handball_be.API.Mapping
 
             CreateMap<Team, TeamDetailDTO>()
             .IncludeBase<Team, TeamDTO>() // Základní mapování převezme z TeamDTO
-            .ForMember(dest => dest.Players, opt => opt.MapFrom(src => src.Players))
-            .ForMember(dest => dest.Coaches, opt => opt.MapFrom(src => src.Coaches));
+            .ForMember(dest => dest.Players, opt => opt.MapFrom(src => src.Players));
+            //.ForMember(dest => dest.Coaches, opt => opt.MapFrom(src => src.Coaches));
 
             CreateMap<TeamDTO, Team>()
                 .ForMember(dest => dest.Club, opt => opt.Ignore())
@@ -83,8 +83,10 @@ namespace bc_handball_be.API.Mapping
                 .ForMember(dest => dest.Teams, opt => opt.MapFrom(src => src.Teams));
 
             // Event
-            CreateMap<Event, EventDTO>()
-                .ForMember(dest => dest.Type, opt => opt.MapFrom(src => src.Type.ToString()));
+            CreateMap<EventDTO, Event>();
+
+            CreateMap<Event, EventDTO>();
+                //.ForMember(dest => dest.Type, opt => opt.MapFrom(src => src.Type.ToString()));
 
             // Group
             CreateMap<Group, GroupDTO>()
@@ -140,6 +142,9 @@ namespace bc_handball_be.API.Mapping
                 .ForMember(dest => dest.AwayTeamId, opt => opt.MapFrom(src => src.AwayTeamId))
                 .ForMember(dest => dest.GroupId, opt => opt.MapFrom(src => src.GroupId))
                 .ForMember(dest => dest.State, opt => opt.MapFrom(_ => MatchState.None));
+
+            CreateMap<MatchUpdateDTO, Match>()
+                .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
 
             // Tournament
             CreateMap<Tournament, TournamentDTO>()

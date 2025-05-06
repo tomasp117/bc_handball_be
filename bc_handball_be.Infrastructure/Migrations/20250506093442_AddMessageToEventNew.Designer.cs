@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using bc_handball_be.Infrastructure.Persistence;
 
@@ -11,9 +12,11 @@ using bc_handball_be.Infrastructure.Persistence;
 namespace bc_handball_be.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250506093442_AddMessageToEventNew")]
+    partial class AddMessageToEventNew
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -291,7 +294,7 @@ namespace bc_handball_be.Infrastructure.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("AuthorId")
+                    b.Property<int>("AuthorId")
                         .HasColumnType("int");
 
                     b.Property<int>("MatchId")
@@ -302,6 +305,7 @@ namespace bc_handball_be.Infrastructure.Migrations
                         .HasColumnType("longtext");
 
                     b.Property<string>("Team")
+                        .IsRequired()
                         .HasColumnType("longtext");
 
                     b.Property<string>("Time")

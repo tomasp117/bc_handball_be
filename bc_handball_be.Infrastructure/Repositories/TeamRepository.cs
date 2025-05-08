@@ -67,7 +67,8 @@ namespace bc_handball_be.Infrastructure.Repositories
         {
             return await _context.Teams
                 .Include(t => t.Category)
-                .Where(t => t.GroupId == groupId)
+                .Include(t => t.TeamGroups)
+                .Where(t => t.TeamGroups.Any(tg => tg.GroupId == groupId))
                 .ToListAsync();
         }
 

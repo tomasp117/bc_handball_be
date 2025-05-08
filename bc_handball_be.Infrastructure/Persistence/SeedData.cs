@@ -113,7 +113,7 @@ namespace bc_handball_be.Infrastructure.Persistence
                                         ClubId = clubs[clubIdx % clubs.Count].Id,
                                         CategoryId = category.Id,
                                         TournamentInstanceId = tournamentInstance.Id,
-                                        GroupId = null,
+                                        TeamGroups = new List<TeamGroup>(),
                                     };
                                     teams.Add(team);
                                     clubIdx++;

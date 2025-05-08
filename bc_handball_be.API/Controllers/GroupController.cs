@@ -35,10 +35,24 @@ namespace bc_handball_be.API.Controllers
 
             try
             {
-                var groups = _mapper.Map<List<Group>>(newGroups);
+                //var groups = _mapper.Map<List<Group>>(newGroups);
+
+                var groups = new List<Group>();
+
+                foreach (var dto in newGroups)
+                {
+                    var group = _mapper.Map<Group>(dto);
+                    group.TeamGroups = dto.Teams.Select(t => new TeamGroup
+                    {
+                        TeamId = t.Id,
+                        Group = group
+                    }).ToList();
+
+                    groups.Add(group);
+                }
 
                 // Filtrujeme prázdné skupiny
-                var validGroups = groups.Where(g => g.Teams.Any()).ToList();
+                var validGroups = groups.Where(g => g.TeamGroups.Select(tg => tg.Team).Any()).ToList();
                 if (!validGroups.Any())
                 {
                     _logger.LogWarning("All provided groups are empty. No data will be saved for category {CategoryId}", category);

@@ -38,7 +38,7 @@ namespace bc_handball_be.Core.Services
             {
                 var groups = CreateBalancedGroups(teamsWithAttributes.ToList(), groupCount);
                 int totalMatches = CalculateTotalMatches(groups);
-                int minMatchesPerTeam = groups.Min(g => g.Teams.Count > 1 ? (g.Teams.Count - 1) : 0);
+                int minMatchesPerTeam = groups.Min(g => g.TeamGroups.Count > 1 ? (g.TeamGroups.Count - 1) : 0);
 
                 variants.Add(new GroupAssignmentVariant
                 {
@@ -57,7 +57,7 @@ namespace bc_handball_be.Core.Services
             var sortedTeams = teams.OrderByDescending(t => t.Strength).ToList();
 
             var groups = Enumerable.Range(1, groupCount)
-                .Select(i => new Group { Id = i - 1, Name = $"Skupina {Convert.ToChar('A' + i - 1)}", Teams = new List<Team>() })
+                .Select(i => new Group { Id = i - 1, Name = $"Skupina {Convert.ToChar('A' + i - 1)}", TeamGroups = new List<TeamGroup>() })
                 .ToList();
 
             int direction = 1;
@@ -67,19 +67,30 @@ namespace bc_handball_be.Core.Services
             {
                 if (teamData.IsGirls)
                 {
-                    var availableGroups = groups.Where(g =>
-                        !g.Teams.Any(t => teams.FirstOrDefault(attr => attr.Team.Id == t.Id)?.IsGirls == true)
-                    ).ToList();
+                    var availableGroups = groups.Where(g => !g.TeamGroups.Any(tg =>
+                        teams.FirstOrDefault(attr => attr.Team.Id == tg.TeamId)?.IsGirls == true))
+                        .ToList();
 
                     if (availableGroups.Any())
                     {
-                        var selectedGroup = availableGroups.OrderBy(g => g.Teams.Count).First();
-                        selectedGroup.Teams.Add(teamData.Team);
+                        var selectedGroup = availableGroups.OrderBy(g => g.TeamGroups.Count).First();
+                        selectedGroup.TeamGroups.Add(new TeamGroup
+                        {
+                            TeamId = teamData.Team.Id,
+                            Team = teamData.Team,
+                            Group = selectedGroup
+                        });
                         continue;
                     }
                 }
 
-                groups[groupIndex].Teams.Add(teamData.Team);
+                var currentGroup = groups[groupIndex];
+                currentGroup.TeamGroups.Add(new TeamGroup
+                {
+                    TeamId = teamData.Team.Id,
+                    Team = teamData.Team,
+                    Group = currentGroup
+                });
 
                 groupIndex += direction;
 
@@ -97,7 +108,7 @@ namespace bc_handball_be.Core.Services
 
         private int CalculateTotalMatches(IEnumerable<Group> groups)
         {
-            return groups.Sum(group => (group.Teams.Count * (group.Teams.Count - 1)) / 2);
+            return groups.Sum(group => (group.TeamGroups.Count * (group.TeamGroups.Count - 1)) / 2);
         }
 
         public Task DeleteTeamAsync(int id)

@@ -26,7 +26,7 @@ namespace bc_handball_be.Core.Services
 
         public async Task SaveGroupsAsync(IEnumerable<Group> newGroups, int categoryId)
         {
-            var validGroups = newGroups.Where(g => g.Teams.Any()).ToList();
+            var validGroups = newGroups.Where(g => g.TeamGroups.Any()).ToList();
             if (!validGroups.Any())
             {
                 _logger.LogWarning("No valid groups to save for category {CategoryId}", categoryId);
@@ -42,13 +42,18 @@ namespace bc_handball_be.Core.Services
                 group.CategoryId = categoryId;
 
                 // Ověříme, že všechny týmy ve skupinách existují v DB
-                group.Teams = group.Teams
-                    .Where(t => teamDictionary.ContainsKey(t.Id))
-                    .Select(t => teamDictionary[t.Id])
+                group.TeamGroups = group.TeamGroups
+                    .Where(tg => teamDictionary.ContainsKey(tg.TeamId))
+                    .Select(tg => new TeamGroup
+                    {
+                        TeamId = tg.TeamId,
+                        Group = group,
+                        Team = teamDictionary[tg.TeamId]
+                    })
                     .ToList();
             }
 
-            _logger.LogInformation("Saving {Count} groups for category {CategoryId}", validGroups.Count, categoryId);
+            _logger.LogInformation("Saving {Count} groups for category {CategoryId} with {TeamCount} total team-group assignments",validGroups.Count, categoryId, validGroups.Sum(g => g.TeamGroups.Count));
             await _groupRepository.SaveGroupsAsync(validGroups, categoryId);
             _logger.LogInformation("Groups saved successfully for category {CategoryId}", categoryId);
         }

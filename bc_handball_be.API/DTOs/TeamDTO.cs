@@ -14,7 +14,7 @@
         public int TournamentInstanceId { get; set; }
         public int TournamentInstanceNum { get; set; } = 0;
 
-        public int? GroupId { get; set; }
-        public string? GroupName { get; set; }
+        public List<int> GroupIds { get; set; } = new();
+        public List<string> GroupNames { get; set; } = new();
     }
 }

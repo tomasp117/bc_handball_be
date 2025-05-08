@@ -119,7 +119,7 @@ namespace bc_handball_be.API.Controllers
                     {
                         Id = group.Id,
                         Name = group.Name,
-                        Teams = group.Teams.Select(team => new TeamGroupAssignDTO
+                        Teams = group.TeamGroups.Select(tg => tg.Team).Select(team => new TeamGroupAssignDTO
                         {
                             Id = team.Id,
                             Name = team.Name,

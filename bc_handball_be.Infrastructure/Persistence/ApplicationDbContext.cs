@@ -27,6 +27,7 @@ namespace bc_handball_be.Infrastructure.Persistence
         public DbSet<Referee> Referees { get; set; }
         public DbSet<Login> Logins { get; set; }
         public DbSet<ClubAdmin> ClubAdmins { get; set; }
+        public DbSet<TeamGroup> TeamGroups { get; set; }
 
 
         override protected void OnModelCreating(ModelBuilder modelBuilder)
@@ -79,11 +80,25 @@ namespace bc_handball_be.Infrastructure.Persistence
                 .OnDelete(DeleteBehavior.Cascade);
 
             // 1:N Group - Team (Tým může patřit do jedné skupiny)
-            modelBuilder.Entity<Team>()
+            /*modelBuilder.Entity<Team>()
                 .HasOne(t => t.Group)
                 .WithMany(g => g.Teams)
                 .HasForeignKey(t => t.GroupId)
-                .OnDelete(DeleteBehavior.SetNull);
+                .OnDelete(DeleteBehavior.SetNull);*/
+
+            // M:N Team - Group přes TeamGroup
+            modelBuilder.Entity<TeamGroup>()
+                .HasKey(tg => new { tg.TeamId, tg.GroupId });
+
+            modelBuilder.Entity<TeamGroup>()
+                .HasOne(tg => tg.Team)
+                .WithMany(t => t.TeamGroups)
+                .HasForeignKey(tg => tg.TeamId);
+
+            modelBuilder.Entity<TeamGroup>()
+                .HasOne(tg => tg.Group)
+                .WithMany(g => g.TeamGroups)
+                .HasForeignKey(tg => tg.GroupId);
 
 
             // 1:N Team - Player

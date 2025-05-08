@@ -27,7 +27,9 @@ namespace bc_handball_be.Infrastructure.Repositories
             _logger.LogInformation("Fetching groups for category {CategoryId}", categoryId);
 
             var groups = await _context.Groups
-                .Include(g => g.Teams)
+                .Include(g => g.TeamGroups)
+                    .ThenInclude(tg => tg.Team)
+                        .ThenInclude(t => t.Club)
                 .Include(t => t.Category)
                 .Where(g => g.CategoryId == categoryId)
                 .ToListAsync();
@@ -60,13 +62,13 @@ namespace bc_handball_be.Infrastructure.Repositories
                 }
 
                 var validGroups = newGroups
-                    .Where(g => g.Teams.Any())
+                    .Where(g => g.TeamGroups.Any())
                     .Select(g => new Group
                     {
-                        Id = 0, 
+                        Id = 0,
                         Name = g.Name,
                         CategoryId = categoryId,
-                        Teams = g.Teams 
+                        TeamGroups = g.TeamGroups
                     })
                     .ToList();
 
@@ -96,7 +98,9 @@ namespace bc_handball_be.Infrastructure.Repositories
         {
             _logger.LogInformation("Fetching all groups");
             var groups = await _context.Groups
-                .Include(g => g.Teams)
+                .Include(g => g.TeamGroups)
+                    .ThenInclude(tg => tg.Team)
+                        .ThenInclude(t => t.Club)
                 .Include(g => g.Category)
                 .ToListAsync();
             _logger.LogInformation("Fetched {Count} groups", groups.Count);

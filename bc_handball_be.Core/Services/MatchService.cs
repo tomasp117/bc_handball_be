@@ -633,7 +633,8 @@ namespace bc_handball_be.Core.Services
 
             foreach (var group in groups)
             {
-                var groupTeams = teams.Where(t => t.GroupId == group.Id).ToList();
+                var groupTeams = teams.Where(t => t.TeamGroups.Any(tg => tg.GroupId == group.Id)).ToList();
+
                 var groupMatches = GetTeamPairsInGroup(groupTeams);
 
                 foreach (var (homeId, awayId) in groupMatches)
@@ -737,7 +738,7 @@ namespace bc_handball_be.Core.Services
 
                 foreach (var group in categoryGroups)
                 {
-                    var groupTeams = categoryTeams.Where(t => t.GroupId == group.Id).ToList();
+                    var groupTeams = categoryTeams.Where(t => t.TeamGroups.Any(tg => tg.GroupId == group.Id)).ToList();
                     var groupMatches = GetTeamPairsInGroup(groupTeams);
 
                     _logger.LogInformation("Skupina {id} ({name}) - Počet týmů: {count}", group.Id, group.Name, groupTeams.Count);
@@ -842,7 +843,7 @@ namespace bc_handball_be.Core.Services
 
             foreach (var group in groups)
             {
-                var groupTeams = teams.Where(t => t.GroupId == group.Id).ToList();
+                var groupTeams = teams.Where(t => t.TeamGroups.Any(tg => tg.GroupId == group.Id)).ToList();
 
                 for (int i = 0; i < groupTeams.Count; i++)
                 {

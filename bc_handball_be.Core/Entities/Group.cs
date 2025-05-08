@@ -10,8 +10,10 @@ namespace bc_handball_be.Core.Entities
         public string Name { get; set; } = string.Empty;
 
         // Navigation properties
-        public ICollection<Team> Teams { get; set; } = new List<Team>();
+        //public ICollection<Team> Teams { get; set; } = new List<Team>();
         public ICollection<Match> Matches { get; set; } = new List<Match>();
+
+        public ICollection<TeamGroup> TeamGroups { get; set; } = new List<TeamGroup>();
 
         // Foreign keys
         public int CategoryId { get; set; }

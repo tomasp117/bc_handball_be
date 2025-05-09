@@ -905,6 +905,12 @@ namespace bc_handball_be.Core.Services
         {
             await _matchRepository.UpdateMatchAsync(match);
         }
+
+        public async Task<List<Match>> GetMatchesByCategoryIdAsync(int categoryId)
+        {
+            var matches = await _matchRepository.GetMatchesByCategoryIdAsync(categoryId);
+            return matches;
+        }
     }
     
 }

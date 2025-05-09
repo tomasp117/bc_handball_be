@@ -17,6 +17,7 @@ namespace bc_handball_be.Core.Interfaces.IRepositories
         Task<Match?> GetMatchByIdAsync(int id);
         Task UpdateMatchesAsync(List<Match> matches);
         Task SaveAsync();
+        Task<List<Match>> GetMatchesByCategoryIdAsync(int categoryId);
 
     }
 }

@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace bc_handball_be.API.Controllers
 {
-    
+
     [Route("api/matches")]
     [ApiController]
     public class MatchController : ControllerBase
@@ -102,5 +102,15 @@ namespace bc_handball_be.API.Controllers
             return NoContent();
         }
 
+        [HttpGet("by-category")]
+        public async Task<IActionResult> GetMatchesByCategory([FromQuery] int category)
+        {
+            var matches = await _matchService.GetMatchesByCategoryIdAsync(category);
+            if (matches == null || !matches.Any())
+                return NotFound();
+
+            var matchDtos = _mapper.Map<List<MatchDTO>>(matches);
+            return Ok(matchDtos);
+        }
     }
 }

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using bc_handball_be.Infrastructure.Persistence;
 
@@ -11,9 +12,11 @@ using bc_handball_be.Infrastructure.Persistence;
 namespace bc_handball_be.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250514085851_AddHomeAwayScore")]
+    partial class AddHomeAwayScore
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -475,7 +478,7 @@ namespace bc_handball_be.Infrastructure.Migrations
 
                     b.HasIndex("GroupId");
 
-                    b.ToTable("TeamGroup", (string)null);
+                    b.ToTable("TeamGroups");
                 });
 
             modelBuilder.Entity("bc_handball_be.Core.Entities.Tournament", b =>

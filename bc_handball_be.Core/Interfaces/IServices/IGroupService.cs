@@ -1,4 +1,5 @@
 ﻿using bc_handball_be.Core.Entities;
+using bc_handball_be.Core.Services.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,5 +13,6 @@ namespace bc_handball_be.Core.Interfaces.IServices
         Task SaveGroupsAsync(IEnumerable<Group> newGroups, int categoryId);
         Task<IEnumerable<Group>> GetGroupsByCategoryAsync(int categoryId);
         Task<List<Group>> GetGroupsAsync();
+        Task<List<GroupStanding>> GetGroupStandingsAsync(int groupId);
     }
 }

@@ -93,34 +93,21 @@ namespace bc_handball_be.API.Controllers
             }
         }
 
-        //[HttpPost("save-bracket")]
-        //public async Task<IActionResult> SaveBracket([FromBody] List<BracketRowDTO> bracketRows, [FromQuery] int categoryId)
-        //{
-        //    try
-        //    {
-        //        var groupsToSave = new List<Group>();
-
-        //        foreach (var row in bracketRows)
-        //        {
-        //            foreach (var groupDto in row.Groups)
-        //            {
-        //                var group = _mapper.Map<Group>(groupDto);
-        //                group.CategoryId = categoryId;
-
-        //                groupsToSave.Add(group);
-        //            }
-        //        }
-
-        //        await _groupService.SaveGroupsAsync(groupsToSave);
-
-        //        return Ok(new { success = true });
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _logger.LogError(ex, "Chyba při ukládání bracketu");
-        //        return StatusCode(500, "Nastala chyba při ukládání bracketu.");
-        //    }
-        //}
+        [HttpGet("{groupId}/standings")]
+        public async Task<IActionResult> GetGroupStandings(int groupId)
+        {
+            try
+            {
+                var standings = await _groupService.GetGroupStandingsAsync(groupId);
+                
+                return Ok(standings);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting standings for group {GroupId}", groupId);
+                return StatusCode(500, "An error occurred while getting standings.");
+            }
+        }
 
     }
 }

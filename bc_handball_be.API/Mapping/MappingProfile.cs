@@ -114,6 +114,8 @@ namespace bc_handball_be.API.Mapping
                 .ForMember(dest => dest.CategoryId, opt => opt.Ignore()) 
                 .ForMember(dest => dest.Matches, opt => opt.Ignore());
 
+            CreateMap<GroupStanding, GroupStandingDTO>();
+
             // Match
             CreateMap<Match, MatchDTO>()
                 .ForMember(dest => dest.State, opt => opt.MapFrom(src => src.State.ToString()))
@@ -144,7 +146,7 @@ namespace bc_handball_be.API.Mapping
                 .ForMember(dest => dest.State, opt => opt.MapFrom(_ => MatchState.None));
 
             CreateMap<MatchUpdateDTO, Match>()
-                .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
+                .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
 
             // Tournament
             CreateMap<Tournament, TournamentDTO>()

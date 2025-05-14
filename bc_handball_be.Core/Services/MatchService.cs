@@ -89,14 +89,14 @@ namespace bc_handball_be.Core.Services
             {
                 case 3:
                     _logger.LogInformation("Generating matches for category {category} with 3 groups", category);
-                    numberOfMatches = 0;                  
+                    numberOfMatches = 0;
 
                     if (teamCount % groupCount == 0)
                     {
                         teamsPerGroup = teamCount / groupCount;
                         numberOfMatches = NumberOfMatchesCommon3(teamsPerGroup, groupCount);
                     }
-                    else if(teamCount % groupCount == 1)
+                    else if (teamCount % groupCount == 1)
                     {
                         teamsPerGroup = (teamCount - 1) / groupCount;
                         numberOfMatches = NumberOfMatchesCommon3(teamsPerGroup, groupCount) + groupCount + teamsPerGroup;
@@ -126,7 +126,7 @@ namespace bc_handball_be.Core.Services
                     {
                         int mod = teamCount % groupCount;
                         teamsPerGroup = (teamCount - mod) / groupCount;
-                        numberOfMatches = NumberOfMatchesCommon4(teamsPerGroup, groupCount) * groupCount + ((mod * (mod-1)) / 2);
+                        numberOfMatches = NumberOfMatchesCommon4(teamsPerGroup, groupCount) * groupCount + ((mod * (mod - 1)) / 2);
                     }
                     break;
                 case 5:
@@ -136,12 +136,12 @@ namespace bc_handball_be.Core.Services
                     if (teamCount % groupCount == 0)
                     {
                         teamsPerGroup = teamCount / groupCount;
-                        numberOfMatches = NumberOfMatchesCommon5(teamsPerGroup, groupCount) + (5 * (teamsPerGroup - 2));  
+                        numberOfMatches = NumberOfMatchesCommon5(teamsPerGroup, groupCount) + (5 * (teamsPerGroup - 2));
                     }
                     else if (teamCount % groupCount == 1)
                     {
                         teamsPerGroup = (teamCount - 1) / groupCount;
-                        numberOfMatches = NumberOfMatchesCommon5(teamsPerGroup, groupCount) + ( 5 * (teamsPerGroup - 3)) + 9 + teamsPerGroup;
+                        numberOfMatches = NumberOfMatchesCommon5(teamsPerGroup, groupCount) + (5 * (teamsPerGroup - 3)) + 9 + teamsPerGroup;
                     }
                     else if (teamCount % groupCount == 2 || teamCount % groupCount == 3 || teamCount % groupCount == 4)
                     {
@@ -246,7 +246,8 @@ namespace bc_handball_be.Core.Services
                     Time = slot.Time,
                     TimePlayed = "00:00",
                     Playground = slot.Court,
-                    Score = "0:0",
+                    HomeScore = null,
+                    AwayScore = null,
                     State = MatchState.Generated
                 });
             }
@@ -262,7 +263,7 @@ namespace bc_handball_be.Core.Services
 
             var tournamentStart = new DateTime(2025, 6, 13);
 
-            foreach(var schedule in schedules)
+            foreach (var schedule in schedules)
             {
                 int dayOffset = ((int)schedule.Day - (int)DayOfWeek.Friday + 7) % 7;
                 var date = tournamentStart.AddDays((int)dayOffset);
@@ -292,134 +293,6 @@ namespace bc_handball_be.Core.Services
             }
             return matches;
         }
-
-        //public async Task AssignGroupMatchesAsync(int categoryId)
-        //{
-        //    await InitCategoryCourtRules();
-
-        //    var teams = await _teamService.GetTeamsByCategoryAsync(categoryId);
-        //    var groups = await _groupService.GetGroupsByCategoryAsync(categoryId);
-
-        //    var blankMatches = await _matchRepository.GetGeneratedMatchesAsync();
-
-        //    var availableSlots = blankMatches
-        //        .Where(m => CourtAllowedForCategory(categoryId, m.Playground, m.Time.DayOfWeek) && !IsLunchTime(m.Time))
-        //        .OrderBy(m => m.Time)
-        //        .ToList();
-
-        //    var lastMatchTimeForTeam = new Dictionary<int, DateTime>();
-
-        //    var assignedMatches = new List<Match>();
-        //    int slotIndex = 0;
-
-        //    foreach(var group in groups)
-        //    {
-        //        var groupTeams = teams.Where(t => t.GroupId == group.Id).ToList();
-        //        var groupMatches = GetTeamPairsInGroup(groupTeams);
-        //        foreach (var (teamHomeId, teamAwayId) in groupMatches)
-        //        {
-        //            // Hledáme slot, kde oba týmy mají pauzu
-        //            while (slotIndex < availableSlots.Count)
-        //            {
-        //                var match = availableSlots[slotIndex];
-        //                if (HasEnoughRest(lastMatchTimeForTeam, teamHomeId, match.Time) &&
-        //                    HasEnoughRest(lastMatchTimeForTeam, teamAwayId, match.Time))
-        //                {
-        //                    match.HomeTeamId = teamHomeId;
-        //                    match.AwayTeamId = teamAwayId;
-        //                    match.GroupId = group.Id;
-        //                    match.Category = group.Category;
-        //                    match.State = MatchState.None;
-
-        //                    // Zaznamenáme poslední čas zápasu
-        //                    lastMatchTimeForTeam[teamHomeId] = match.Time;
-        //                    lastMatchTimeForTeam[teamAwayId] = match.Time;
-
-        //                    await _matchRepository.UpdateMatchAsync(match);
-        //                    assignedMatches.Add(match);
-        //                    slotIndex++;
-        //                    break;
-        //                }
-        //                slotIndex++;
-        //            }
-        //            if (slotIndex >= availableSlots.Count)
-        //            {
-        //                _logger.LogWarning("Nedostatek volných slotů pro zápasy skupiny.");
-        //                break;
-        //            }
-        //        }
-        //    }
-        //}
-
-
-        //public async Task<List<Match>> GenerateMatchesForGroupStage(int categoryId)
-        //{
-        //    await InitCategoryCourtRules();
-
-        //    var teams = await _teamService.GetTeamsByCategoryAsync(categoryId);
-        //    var groups = await _groupService.GetGroupsByCategoryAsync(categoryId);
-
-        //    var lastMatchTimeForTeam = new Dictionary<int, DateTime>();
-
-        //    var slots = GenerateMatchSlots()
-        //        .Where(s => CourtAllowedForCategory(categoryId, s.Court, s.Time.DayOfWeek))
-        //        .OrderBy(s => s.Time)
-        //        .ToList();
-        //    var matches = new List<Match>();
-        //    int slotIndex = 0;
-
-        //    foreach (var group in groups)
-        //    {
-        //        var groupTeams = teams.Where(t => t.GroupId == group.Id).ToList();
-        //        var groupMatches = GetTeamPairsInGroup(groupTeams);
-
-        //        foreach (var (teamHomeId, teamAwayId) in groupMatches)
-        //        {
-        //            // Hledáme slot, kde oba týmy mají pauzu
-        //            while (slotIndex < slots.Count)
-        //            {
-        //                var slot = slots[slotIndex];
-
-        //                if (HasEnoughRest(lastMatchTimeForTeam, teamHomeId, slot.Time) &&
-        //                    HasEnoughRest(lastMatchTimeForTeam, teamAwayId, slot.Time) &&
-        //                    !IsLunchTime(slot.Time))
-        //                {
-        //                    // Přiřazení zápasu
-        //                    matches.Add(new Match
-        //                    {
-        //                        Time = slot.Time,
-        //                        TimePlayed = "00:00",
-        //                        Playground = slot.Court,
-        //                        HomeTeamId = teamHomeId,
-        //                        AwayTeamId = teamAwayId,
-        //                        GroupId = group.Id,
-        //                        Category = group.Category,
-        //                        Score = "0:0",
-        //                        State = MatchState.None
-        //                    });
-
-        //                    // Zaznamenáme poslední čas zápasu
-        //                    lastMatchTimeForTeam[teamHomeId] = slot.Time;
-        //                    lastMatchTimeForTeam[teamAwayId] = slot.Time;
-
-        //                    slotIndex++;
-        //                    break;
-        //                }
-
-        //                slotIndex++;
-        //            }
-
-        //            if (slotIndex >= slots.Count)
-        //            {
-        //                _logger.LogWarning("Nedostatek volných slotů pro zápasy skupiny.");
-        //                break;
-        //            }
-        //        }
-        //    }
-
-        //    return matches;
-        //}
-
 
 
         private bool CourtAllowedForCategory(int categoryId, string court, DayOfWeek day)
@@ -517,13 +390,13 @@ namespace bc_handball_be.Core.Services
             public List<DayOfWeek>? AllowedDays { get; set; } // null = každý den
             public bool IsPrimary { get; set; } = false;
         };
-        
+
 
         private async Task InitCategoryCourtRules()
         {
             var categories = await _categoryService.GetCategoriesAsync();
 
-            
+
             var mini61 = categories.FirstOrDefault(c => c.Name == "Mini 6+1");
             var mladsiZaci = categories.FirstOrDefault(c => c.Name == "Mladší žáci");
             var starsiZaci = categories.FirstOrDefault(c => c.Name == "Starší žáci");
@@ -591,7 +464,7 @@ namespace bc_handball_be.Core.Services
         private bool IsRightAfterLunch(DateTime time)
         {
             var lunchEnd = time.Date + new TimeSpan(12, 30, 0);
-            return time >= lunchEnd && time < lunchEnd.AddHours(2); 
+            return time >= lunchEnd && time < lunchEnd.AddHours(2);
         }
 
 
@@ -807,7 +680,7 @@ namespace bc_handball_be.Core.Services
                                 assignedMatches.Add(slot);
                                 matchAssigned = true;
 
-                                
+
                                 break;
                             }
                         }
@@ -872,7 +745,7 @@ namespace bc_handball_be.Core.Services
 
         public async Task UpdateMatchesAsync(List<Match> assignments)
         {
-            foreach(var assigned in assignments)
+            foreach (var assigned in assignments)
             {
                 var match = await _matchRepository.GetMatchByIdAsync(assigned.Id);
                 if (match == null)
@@ -893,7 +766,7 @@ namespace bc_handball_be.Core.Services
         public async Task<Match> GetMatchByIdAsync(int id)
         {
             var match = await _matchRepository.GetMatchByIdAsync(id);
-            if(match == null)
+            if (match == null)
             {
                 _logger.LogWarning("Zápas s ID {Id} nebyl nalezen.", id);
                 return null;
@@ -909,6 +782,12 @@ namespace bc_handball_be.Core.Services
         public async Task<List<Match>> GetMatchesByCategoryIdAsync(int categoryId)
         {
             var matches = await _matchRepository.GetMatchesByCategoryIdAsync(categoryId);
+            return matches;
+        }
+
+        public async Task<List<Match>> GetMatchesByGroupIdAsync(int groupId)
+        {
+            var matches = await _matchRepository.GetMatchesByGroupIdAsync(groupId);
             return matches;
         }
     }

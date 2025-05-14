@@ -20,7 +20,9 @@ namespace bc_handball_be.Core.Entities
         public DateTime Time { get; set; }
         public string TimePlayed { get; set; } = string.Empty;
         public string Playground { get; set; } = string.Empty;
-        public string Score { get; set; } = "0:0";
+        //public string Score { get; set; } = "0:0";
+        public int? HomeScore { get; set; }
+        public int? AwayScore { get; set; }
         public MatchState State { get; set; } = MatchState.None;
 
         // Navigation properties

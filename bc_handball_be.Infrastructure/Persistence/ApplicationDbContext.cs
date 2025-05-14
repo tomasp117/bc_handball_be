@@ -39,6 +39,7 @@ namespace bc_handball_be.Infrastructure.Persistence
             modelBuilder.Entity<Category>().ToTable("Category");
             modelBuilder.Entity<Group>().ToTable("Group");
             modelBuilder.Entity<Team>().ToTable("Team");
+            modelBuilder.Entity<TeamGroup>().ToTable("TeamGroup");
             modelBuilder.Entity<Player>().ToTable("Player");
             modelBuilder.Entity<Match>().ToTable("Match");
             modelBuilder.Entity<Event>().ToTable("Event");

@@ -790,6 +790,12 @@ namespace bc_handball_be.Core.Services
             var matches = await _matchRepository.GetMatchesByGroupIdAsync(groupId);
             return matches;
         }
+
+        public async Task<List<Match>> GetMatchesByTeamIdAsync(int teamId)
+        {
+            var matches = await _matchRepository.GetMatchesByTeamIdAsync(teamId);
+            return matches;
+        }
     }
     
 }

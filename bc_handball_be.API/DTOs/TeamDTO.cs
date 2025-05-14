@@ -5,8 +5,10 @@
         public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
 
-        public int ClubId { get; set; }
-        public string ClubName { get; set; } = string.Empty;
+        //public int ClubId { get; set; }
+        //public string ClubName { get; set; } = string.Empty;
+
+        public ClubDTO Club { get; set; } = null!;
 
         public int CategoryId { get; set; }
         public string CategoryName { get; set; } = string.Empty;

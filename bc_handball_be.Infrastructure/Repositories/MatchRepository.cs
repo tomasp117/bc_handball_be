@@ -148,5 +148,19 @@ namespace bc_handball_be.Infrastructure.Repositories
                 .Where(m => m.GroupId == groupId)
                 .ToListAsync();
         }
+
+        public async Task<List<Match>> GetMatchesByTeamIdAsync(int teamId)
+        {
+            _logger.LogInformation("Fetching matches for team ID {teamId}", teamId);
+            return await _context.Matches
+                .Include(m => m.HomeTeam)
+                    .ThenInclude(t => t.Players)
+                        .ThenInclude(p => p.Person)
+                .Include(m => m.AwayTeam)
+                    .ThenInclude(t => t.Players)
+                        .ThenInclude(p => p.Person)
+                .Where(m => m.HomeTeamId == teamId || m.AwayTeamId == teamId)
+                .ToListAsync();
+        }
     }
 }

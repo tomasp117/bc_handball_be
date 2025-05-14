@@ -2,6 +2,7 @@
 using bc_handball_be.API.DTOs;
 using bc_handball_be.Core.Entities.Actors.sub;
 using bc_handball_be.Core.Interfaces.IServices;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace bc_handball_be.API.Controllers
@@ -21,7 +22,7 @@ namespace bc_handball_be.API.Controllers
             _mapper = mapper;
         }
 
-
+        [Authorize(Roles = "Admin, Coach")]
         [HttpPost("")]
         public async Task<IActionResult> AddPlayer([FromBody] PlayerDetailDTO newPlayer)
         {
@@ -34,6 +35,7 @@ namespace bc_handball_be.API.Controllers
             return Ok();
         }
 
+        [Authorize(Roles = "Admin, Coach")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeletePlayer(int id)
         {
@@ -42,6 +44,7 @@ namespace bc_handball_be.API.Controllers
             return Ok("Hráč byl úspěšně smazán.");
         }
 
+        [Authorize(Roles = "Admin, Coach")]
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdatePlayer(int id, [FromBody] PlayerDetailDTO updatedPlayer)
         {

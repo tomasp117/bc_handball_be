@@ -5,6 +5,7 @@ using bc_handball_be.Core.Entities.Actors.super;
 using bc_handball_be.Core.Interfaces.IServices;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace bc_handball_be.API.Controllers
 {
@@ -22,6 +23,7 @@ namespace bc_handball_be.API.Controllers
 
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterDTO model)
         {

@@ -11,6 +11,7 @@ using bc_handball_be.Core.Services;
 using Microsoft.OpenApi.Models;
 using bc_handball_be.Core.Interfaces.IRepositories;
 using bc_handball_be.Core.Interfaces.IServices;
+using System.Security.Claims;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -28,7 +29,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateIssuer = false,
             ValidateAudience = false,
             ValidateLifetime = true,
-            ClockSkew = TimeSpan.Zero
+            ClockSkew = TimeSpan.Zero,
+            RoleClaimType = ClaimTypes.Role
         };
     });
 
@@ -123,9 +125,9 @@ if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
 }
 app.UseCors("AllowFrontend");
 app.UseHttpsRedirection();
-app.MapControllers();
 app.UseAuthentication();
 app.UseAuthorization();
+app.MapControllers();
 app.UseStaticFiles();
 
 // Seed data

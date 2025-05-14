@@ -14,7 +14,6 @@ namespace bc_handball_be.API.Mapping
         {
             // Team
             CreateMap<Team, TeamDTO>()
-                .ForMember(dest => dest.ClubName, opt => opt.MapFrom(src => src.Club.Name))
                 .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category.Name))
                 .ForMember(dest => dest.TournamentInstanceNum, opt => opt.MapFrom(src => src.TournamentInstance.EditionNumber))
                 .ForMember(dest => dest.GroupIds, opt => opt.MapFrom(src => src.TeamGroups.Select(tg => tg.GroupId)))

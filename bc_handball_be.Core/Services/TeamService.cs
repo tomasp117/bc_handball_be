@@ -116,9 +116,9 @@ namespace bc_handball_be.Core.Services
             throw new NotImplementedException();
         }
 
-        public Task<Team?> GetTeamByIdAsync(int id)
+        public async Task<Team?> GetTeamByIdAsync(int id)
         {
-            throw new NotImplementedException();
+            return await _teamRepository.GetTeamByIdAsync(id);
         }
 
         public async Task<IEnumerable<Team>> GetTeamsAsync()

@@ -25,6 +25,7 @@ namespace bc_handball_be.API.Controllers
             _matchService = matchService;
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPost("generate-blank")]
         public async Task<IActionResult> GenerateBlankMatches()
         {
@@ -33,6 +34,7 @@ namespace bc_handball_be.API.Controllers
             return Ok(matches);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPost("assign-group-matches/{categoryId}")]
         public async Task<IActionResult> AssignGroupMatches(int categoryId)
         {
@@ -42,6 +44,7 @@ namespace bc_handball_be.API.Controllers
             return Ok(dtos);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPost("assign-all-group-matches")]
         public async Task<IActionResult> AssignAllGroupMatches()
         {
@@ -69,6 +72,7 @@ namespace bc_handball_be.API.Controllers
             return Ok(dto);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPut("update-batch")]
         public async Task<IActionResult> UpdateBatch([FromBody] List<MatchAssignmentDTO> assignments)
         {
@@ -89,6 +93,7 @@ namespace bc_handball_be.API.Controllers
             return Ok(dto);
         }
 
+        [Authorize(Roles = "Admin, Recorder")]
         [HttpPatch("{id}")]
         public async Task<IActionResult> UpdateMatch(int id, [FromBody] MatchUpdateDTO dto)
         {

@@ -34,9 +34,14 @@ namespace bc_handball_be.Infrastructure.Repositories
             throw new NotImplementedException();
         }
 
-        public Task<Team?> GetTeamByIdAsync(int id)
+        public async Task<Team?> GetTeamByIdAsync(int id)
         {
-            throw new NotImplementedException();
+            return await _context.Teams
+                .Include(t => t.Category)
+                .Include(t => t.TeamGroups)
+                .ThenInclude(tg => tg.Group)
+                .Include(t => t.Club)        
+                .FirstOrDefaultAsync(t => t.Id == id);
         }
 
         public async Task<IEnumerable<Team>> GetTeamsAsync()

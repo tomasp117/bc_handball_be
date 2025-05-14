@@ -4,6 +4,7 @@ using bc_handball_be.Core.Entities;
 using bc_handball_be.Core.Interfaces;
 using bc_handball_be.Core.Interfaces.IServices;
 using bc_handball_be.Core.Services.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace bc_handball_be.API.Controllers
@@ -13,12 +14,14 @@ namespace bc_handball_be.API.Controllers
     public class TeamController : ControllerBase
     {
         private readonly ITeamService _teamService;
+        private readonly IMatchService _matchService;
         private readonly ILogger<TeamController> _logger;
         private readonly IMapper _mapper;
 
-        public TeamController(ITeamService teamService, ILogger<TeamController> logger, IMapper mapper)
+        public TeamController(ITeamService teamService,IMatchService matchService, ILogger<TeamController> logger, IMapper mapper)
         {
             _teamService = teamService;
+            _matchService = matchService;
             _logger = logger;
             _mapper = mapper;
         }
@@ -79,6 +82,7 @@ namespace bc_handball_be.API.Controllers
             }
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPost("assign-groups")]
         public async Task<ActionResult> AssignTeamsToGroups(
             [FromBody] IEnumerable<TeamGroupAssignDTO> teamDtos,
@@ -137,6 +141,25 @@ namespace bc_handball_be.API.Controllers
                 _logger.LogError(ex, "Error assigning teams to groups");
                 return StatusCode(500, "An error occurred while assigning teams to groups");
             }
+        }
+
+        [HttpGet("{id}")]
+        public async Task<ActionResult<TeamDetailDTO>> GetTeamById(int id)
+        {
+            var team = await _teamService.GetTeamByIdAsync(id);
+            if (team == null)
+                return NotFound();
+
+            var dto = _mapper.Map<TeamDetailDTO>(team);
+            return Ok(dto);
+        }
+
+        [HttpGet("{id}/matches")]
+        public async Task<ActionResult<IEnumerable<MatchDTO>>> GetMatchesForTeam(int id)
+        {
+            var matches = await _matchService.GetMatchesByTeamIdAsync(id);
+            var matchDtos = _mapper.Map<IEnumerable<MatchDTO>>(matches);
+            return Ok(matchDtos);
         }
     }
 }

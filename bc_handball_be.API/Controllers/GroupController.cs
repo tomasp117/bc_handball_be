@@ -3,6 +3,7 @@ using bc_handball_be.API.DTOs;
 using bc_handball_be.API.DTOs.GroupBrackets;
 using bc_handball_be.Core.Entities;
 using bc_handball_be.Core.Interfaces.IServices;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace bc_handball_be.API.Controllers
@@ -22,6 +23,7 @@ namespace bc_handball_be.API.Controllers
             _mapper = mapper;
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPost("save")]
         public async Task<IActionResult> SaveGroupsToDatabase(
             [FromBody] List<GroupDetailDTO> newGroups,

@@ -21,5 +21,6 @@ namespace bc_handball_be.Core.Interfaces.IServices
         Task UpdateMatchAsync(Match match);
         Task<List<Match>> GetMatchesByCategoryIdAsync(int categoryId);
         Task<List<Match>> GetMatchesByGroupIdAsync(int groupId);
+        Task<List<Match>> GetMatchesByTeamIdAsync(int teamId);
     }
 }

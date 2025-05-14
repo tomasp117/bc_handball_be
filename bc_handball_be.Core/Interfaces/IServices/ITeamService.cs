@@ -22,5 +22,6 @@ namespace bc_handball_be.Core.Interfaces.IServices
         //Task<IEnumerable<GroupAssignmentVariant>> AssignTeamsToGroupsVariantsAsync(IEnumerable<TeamWithAttributes> teamsWithAttributes, int categoryId);
         Task<IEnumerable<GroupAssignmentVariant>> AssignTeamsToGroupsAsync(IEnumerable<TeamWithAttributes> teamsWithAttributes, int categoryId);
         Task<List<Team>> GetTeamsByGroupAsync(int groupId);
+
     }
 }

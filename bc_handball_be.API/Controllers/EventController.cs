@@ -2,7 +2,9 @@
 using bc_handball_be.API.DTOs;
 using bc_handball_be.Core.Entities;
 using bc_handball_be.Core.Interfaces.IServices;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace bc_handball_be.API.Controllers
 {
@@ -10,20 +12,25 @@ namespace bc_handball_be.API.Controllers
     [ApiController]
     public class EventController : ControllerBase
     {
-        private readonly ILogger<GroupController> _logger;
+        private readonly ILogger<EventController> _logger;
         private readonly IMapper _mapper;
         private readonly IEventService _eventService;
 
-        public EventController(IEventService eventService, ILogger<GroupController> logger, IMapper mapper)
+        public EventController(IEventService eventService, ILogger<EventController> logger, IMapper mapper)
         {
             _eventService = eventService;
             _logger = logger;
             _mapper = mapper;
         }
 
+        [Authorize(Roles = "Admin, Recorder")]
         [HttpPost("add")]
         public async Task<IActionResult> AddEvent([FromBody] EventDTO dto)
         {
+            if (!User.IsInRole("Admin") && !User.IsInRole("Recorder"))
+            {
+                return Forbid("You don't have the required role.");
+            }
             var newEvent = _mapper.Map<Event>(dto);
             await _eventService.AddEventAsync(newEvent);
             return Ok();
@@ -41,6 +48,7 @@ namespace bc_handball_be.API.Controllers
             return Ok(eventDtos);
         }
 
+        [Authorize(Roles = "Admin, Recorder")]
         [HttpDelete]
         public async Task<IActionResult> DeleteByMatchId([FromQuery] int matchId)
         {
@@ -48,6 +56,7 @@ namespace bc_handball_be.API.Controllers
             return NoContent();
         }
 
+        [Authorize(Roles = "Admin, Recorder")]
         [HttpDelete("last")]
         public async Task<IActionResult> DeleteLastEvent([FromQuery] int matchId)
         {

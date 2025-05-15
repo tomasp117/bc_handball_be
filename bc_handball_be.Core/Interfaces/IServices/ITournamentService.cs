@@ -7,10 +7,9 @@ using System.Threading.Tasks;
 
 namespace bc_handball_be.Core.Interfaces.IServices
 {
-    public interface ICategoryService
+    public interface ITournamentService
     {
-        Task<IEnumerable<Category>> GetCategoriesAsync();
-        Task<Category> GetCategoryByIdAsync(int id);
-        Task<Category> CreateCategoryAsync(Category category);
+        Task<Tournament> CreateTournamentAsync(Tournament tournament);
+        Task<List<Tournament>> GetAllTournamentsAsync();
     }
 }

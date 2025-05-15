@@ -111,6 +111,10 @@ builder.Services.AddScoped<IPersonRepository, PersonRepository>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IEventRepository, EventRepository>();
 builder.Services.AddScoped<IEventService, EventService>();
+builder.Services.AddScoped<ITournamentRepository, TournamentRepository>();
+builder.Services.AddScoped<ITournamentService, TournamentService>();
+builder.Services.AddScoped<ITournamentInstanceRepository, TournamentInstanceRepository>();
+builder.Services.AddScoped<ITournamentInstanceService, TournamentInstanceService>();
 
 
 var app = builder.Build();

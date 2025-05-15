@@ -32,5 +32,15 @@ namespace bc_handball_be.Core.Services
             return await categoryRepository.GetCategoryByIdAsync(id);
         }
 
+        public async Task<Category> CreateCategoryAsync(Category category)
+        {
+            if (category == null)
+            {
+                logger.LogError("Category is null");
+                throw new ArgumentNullException(nameof(category));
+            }
+            return await categoryRepository.AddAsync(category);
+        }
+
     }
 }

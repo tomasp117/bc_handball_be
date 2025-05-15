@@ -1,4 +1,6 @@
-﻿namespace bc_handball_be.API.DTOs
+﻿using System.Text.Json.Serialization;
+
+namespace bc_handball_be.API.DTOs
 {
     public class TeamDTO
     {
@@ -8,7 +10,8 @@
         //public int ClubId { get; set; }
         //public string ClubName { get; set; } = string.Empty;
 
-        public ClubDTO Club { get; set; } = null!;
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public ClubDTO? Club { get; set; } = null!;
 
         public int CategoryId { get; set; }
         public string CategoryName { get; set; } = string.Empty;

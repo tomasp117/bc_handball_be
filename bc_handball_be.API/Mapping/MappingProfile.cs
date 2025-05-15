@@ -74,6 +74,17 @@ namespace bc_handball_be.API.Mapping
                 .ForMember(dest => dest.Stats, opt => opt.MapFrom(src => src.Stats))
                 .ForMember(dest => dest.Voting, opt => opt.MapFrom(src => src.Voting));
 
+            CreateMap<CategoryPostDTO, Category>();
+
+            CreateMap<Category, CategoryPostDTO>();
+
+            CreateMap<CategoryDTO, Category>()
+                .ForMember(dest => dest.Matches, opt => opt.Ignore())
+                .ForMember(dest => dest.Groups, opt => opt.Ignore())
+                .ForMember(dest => dest.Voting, opt => opt.Ignore())
+                .ForMember(dest => dest.Stats, opt => opt.Ignore())
+                .ForMember(dest => dest.TournamentInstance, opt => opt.Ignore());
+
             // Club
             CreateMap<Club, ClubDTO>();
 
@@ -148,14 +159,19 @@ namespace bc_handball_be.API.Mapping
                 .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
 
             // Tournament
-            CreateMap<Tournament, TournamentDTO>()
-                .ForMember(dest => dest.Editions, opt => opt.MapFrom(src => src.Editions));
+            CreateMap<Tournament, TournamentDTO>();
+            CreateMap<TournamentDTO, Tournament>();
 
             // TournamentInstance
             CreateMap<TournamentInstance, TournamentInstanceDTO>()
                 .ForMember(dest => dest.TournamentName, opt => opt.MapFrom(src => src.Tournament.Name))
                 .ForMember(dest => dest.Teams, opt => opt.MapFrom(src => src.Teams))
                 .ForMember(dest => dest.Categories, opt => opt.MapFrom(src => src.Categories));
+
+            CreateMap<TournamentInstanceDTO, TournamentInstance>()
+                .ForMember(dest => dest.Tournament, opt => opt.Ignore())
+                .ForMember(dest => dest.Teams, opt => opt.Ignore())
+                .ForMember(dest => dest.Categories, opt => opt.Ignore());
 
 
             // Person

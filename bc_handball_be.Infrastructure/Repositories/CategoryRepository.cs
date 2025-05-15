@@ -41,5 +41,13 @@ namespace bc_handball_be.Infrastructure.Repositories
             }
             return category;
         }
+
+        public async Task<Category> AddAsync(Category category)
+        {
+            _logger.LogInformation("Adding category {category}", category);
+            await _context.Categories.AddAsync(category);
+            await _context.SaveChangesAsync();
+            return category;
+        }
     }
 }

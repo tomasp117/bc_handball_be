@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
 using bc_handball_be.API.DTOs;
+using bc_handball_be.Core.Entities;
 using bc_handball_be.Core.Interfaces.IServices;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace bc_handball_be.API.Controllers
@@ -64,6 +66,31 @@ namespace bc_handball_be.API.Controllers
             {
                 _logger.LogError(ex, "Error fetching category with ID {Id}", id);
                 return StatusCode(500, "An error occurred while fetching the category.");
+            }
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPost]
+        public async Task<IActionResult> CreateCategory([FromBody] CategoryPostDTO categoryDto)
+        {
+            if (categoryDto == null)
+            {
+                _logger.LogWarning("Received null category object.");
+                return BadRequest("Category data is required.");
+            }
+            try
+            {
+
+                var category = _mapper.Map<Category>(categoryDto);
+                var createdCategory = await _categoryService.CreateCategoryAsync(category);
+                var createdCategoryDto = _mapper.Map<CategoryPostDTO>(createdCategory);
+
+                return Ok(createdCategoryDto);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating category");
+                return StatusCode(500, "An error occurred while creating the category.");
             }
         }
 

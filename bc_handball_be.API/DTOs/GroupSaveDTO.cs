@@ -1,8 +1,8 @@
 ﻿namespace bc_handball_be.API.DTOs
 {
-    public class TournamentDTO
+    public class GroupSaveDTO
     {
-        public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
+        public List<int> TeamIds { get; set; } = new();
     }
 }

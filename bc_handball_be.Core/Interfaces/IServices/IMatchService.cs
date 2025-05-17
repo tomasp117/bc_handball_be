@@ -10,13 +10,13 @@ namespace bc_handball_be.Core.Interfaces.IServices
 {
     public interface IMatchService
     {
-        Task<List<Match>> GenBlankMatches();
+        Task<List<Match>> GenBlankMatches(int edition);
         //Task<List<Match>> GenerateMatchesForGroupStage(int category);
-        Task<List<Match>> AssignGroupMatchesFromScratch(int categoryId);
+        Task<List<Match>> AssignGroupMatchesFromScratch(int categoryId, int edition);
         Task<List<Match>> GetMatchesAsync();
         Task<List<UnassignedMatch>> GetUnassignedGroupMatches(int categoryId);
         Task UpdateMatchesAsync(List<Match> assignments);
-        Task<List<Match>> AssignAllGroupMatchesFromScratch();
+        Task<List<Match>> AssignAllGroupMatchesFromScratch(int edition);
         Task<Match> GetMatchByIdAsync(int id);
         Task UpdateMatchAsync(Match match);
         Task<List<Match>> GetMatchesByCategoryIdAsync(int categoryId);

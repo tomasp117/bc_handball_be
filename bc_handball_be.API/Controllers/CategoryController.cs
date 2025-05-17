@@ -8,7 +8,8 @@ using Microsoft.AspNetCore.Mvc;
 namespace bc_handball_be.API.Controllers
 {
 
-    [Route("api/categories")]
+    //[Route("api/{edition}/categories")]
+    [Route("api")]
     [ApiController]
     public class CategoryController : ControllerBase
     {
@@ -24,16 +25,16 @@ namespace bc_handball_be.API.Controllers
             _mapper = mapper;
         }
 
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<CategoryDTO>>> GetCategories()
+        [HttpGet("{edition}/categories")]
+        public async Task<ActionResult<IEnumerable<CategoryDTO>>> GetCategories(int edition)
         {
             try
             {
-                var categories = await _categoryService.GetCategoriesAsync();
+                var categories = await _categoryService.GetCategoriesAsync(edition);
 
                 if (categories == null || !categories.Any())
                 {
-                    _logger.LogWarning("No categories found.");
+                    _logger.LogWarning("No categories found for edition {Edition}", edition);
                     return NotFound("No categories available.");
                 }
 
@@ -41,12 +42,12 @@ namespace bc_handball_be.API.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error fetching categories");
+                _logger.LogError(ex, "Error fetching categories for edition {Edition}", edition);
                 return StatusCode(500, "An error occurred while fetching categories.");
             }
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("categories/{id}")]
         public async Task<ActionResult<CategoryDetailDTO>> GetCategoryById(int id)
         {
             try
@@ -70,7 +71,7 @@ namespace bc_handball_be.API.Controllers
         }
 
         [Authorize(Roles = "Admin")]
-        [HttpPost]
+        [HttpPost("categories")]
         public async Task<IActionResult> CreateCategory([FromBody] CategoryPostDTO categoryDto)
         {
             if (categoryDto == null)

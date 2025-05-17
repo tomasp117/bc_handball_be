@@ -11,5 +11,6 @@ namespace bc_handball_be.Core.Interfaces.IServices
     {
         Task<TournamentInstance> CreateTournamentInstanceAsync(TournamentInstance tournamentInstance);
         Task<List<TournamentInstance>> GetAllTournamentInstancesAsync();
+
     }
 }

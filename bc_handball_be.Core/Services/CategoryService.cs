@@ -12,24 +12,24 @@ namespace bc_handball_be.Core.Services
 {
     public class CategoryService : ICategoryService
     {
-        private readonly ICategoryRepository categoryRepository;
+        private readonly ICategoryRepository _categoryRepository;
         private readonly ILogger<CategoryService> logger;
 
         public CategoryService(ICategoryRepository categoryRepository, ILogger<CategoryService> logger)
         {
-            this.categoryRepository = categoryRepository;
+            this._categoryRepository = categoryRepository;
             this.logger = logger;
         }
 
 
-        public async Task<IEnumerable<Category>> GetCategoriesAsync()
+        public async Task<IEnumerable<Category>> GetCategoriesAsync(int edition)
         {
-            return await categoryRepository.GetCategoriesAsync();   
+            return await _categoryRepository.GetCategoriesAsync(edition);               
         }
 
         public async Task<Category> GetCategoryByIdAsync(int id)
         {
-            return await categoryRepository.GetCategoryByIdAsync(id);
+            return await _categoryRepository.GetCategoryByIdAsync(id);
         }
 
         public async Task<Category> CreateCategoryAsync(Category category)
@@ -39,7 +39,7 @@ namespace bc_handball_be.Core.Services
                 logger.LogError("Category is null");
                 throw new ArgumentNullException(nameof(category));
             }
-            return await categoryRepository.AddAsync(category);
+            return await _categoryRepository.AddAsync(category);
         }
 
     }

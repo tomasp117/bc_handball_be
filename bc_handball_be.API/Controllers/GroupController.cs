@@ -65,7 +65,7 @@ namespace bc_handball_be.API.Controllers
                 await _groupService.SaveGroupsAsync(validGroups, category);
 
                 _logger.LogInformation("Groups for category {CategoryId} saved successfully", category);
-                return Ok("Groups saved successfully.");
+                return Ok(groups);
             }
             catch (Exception ex)
             {

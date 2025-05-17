@@ -9,7 +9,7 @@ namespace bc_handball_be.Core.Interfaces.IRepositories
 {
     public interface ICategoryRepository
     {
-        public Task<IEnumerable<Category>> GetCategoriesAsync();
+        public Task<IEnumerable<Category>> GetCategoriesAsync(int edition);
         public Task<Category> GetCategoryByIdAsync(int id);
         public Task<Category> AddAsync(Category category);
     }

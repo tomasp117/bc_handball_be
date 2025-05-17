@@ -23,10 +23,12 @@ namespace bc_handball_be.Infrastructure.Repositories
             _logger = logger;
         }
 
-        public async Task<IEnumerable<Category>> GetCategoriesAsync()
+        public async Task<IEnumerable<Category>> GetCategoriesAsync(int edition)
         {
             _logger.LogInformation("Fetching categories");
-            var categories = await _context.Categories.ToListAsync();
+            var categories = await _context.Categories
+                .Where(c => c.TournamentInstance.EditionNumber == edition)
+                .ToListAsync();
             return categories;
         }
 

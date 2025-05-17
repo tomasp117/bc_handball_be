@@ -225,12 +225,12 @@ namespace bc_handball_be.Core.Services
             }
         }*/
 
-        public async Task<List<Match>> GenBlankMatches()
+        public async Task<List<Match>> GenBlankMatches(int edition)
         {
             var matches = new List<Match>();
             var slots = GenerateMatchSlots().OrderBy(x => x.Time).ToList();
 
-            var categories = await _categoryService.GetCategoriesAsync();
+            var categories = await _categoryService.GetCategoriesAsync(edition);
 
             int sumOfMatches = 0;
             foreach (var category in categories)
@@ -392,9 +392,9 @@ namespace bc_handball_be.Core.Services
         };
 
 
-        private async Task InitCategoryCourtRules()
+        private async Task InitCategoryCourtRules(int edition)
         {
-            var categories = await _categoryService.GetCategoriesAsync();
+            var categories = await _categoryService.GetCategoriesAsync(edition);
 
 
             var mini61 = categories.FirstOrDefault(c => c.Name == "Mini 6+1");
@@ -470,17 +470,17 @@ namespace bc_handball_be.Core.Services
 
 
 
-        public async Task<List<Match>> AssignGroupMatchesFromScratch(int categoryId)
+        public async Task<List<Match>> AssignGroupMatchesFromScratch(int categoryId, int edition)
         {
             if (_categoryCourtRules.Count == 0)
             {
-                await InitCategoryCourtRules();
+                await InitCategoryCourtRules(edition);
             }
 
             var teams = await _teamService.GetTeamsByCategoryAsync(categoryId);
             var groups = await _groupService.GetGroupsByCategoryAsync(categoryId);
 
-            var categories = await _categoryService.GetCategoriesAsync();
+            var categories = await _categoryService.GetCategoriesAsync(edition);
 
             var mini41 = categories.FirstOrDefault(c => c.Name == "Mini 4+1");
 
@@ -560,12 +560,12 @@ namespace bc_handball_be.Core.Services
             return assignedMatches;
         }
 
-        public async Task<List<Match>> AssignAllGroupMatchesFromScratch()
+        public async Task<List<Match>> AssignAllGroupMatchesFromScratch(int edition)
         {
             if (_categoryCourtRules.Count == 0)
-                await InitCategoryCourtRules();
+                await InitCategoryCourtRules(edition);
 
-            var categories = await _categoryService.GetCategoriesAsync();
+            var categories = await _categoryService.GetCategoriesAsync(edition);
             var teams = await _teamService.GetTeamsAsync();
             var groups = await _groupService.GetGroupsAsync();
             _logger.LogInformation("Groups: {groups}", string.Join(", ", groups.Select(g => g.Name)));

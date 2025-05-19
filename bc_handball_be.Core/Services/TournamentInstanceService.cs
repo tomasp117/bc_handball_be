@@ -32,5 +32,11 @@ namespace bc_handball_be.Core.Services
             var tournamentInstances = await _tournamentInstanceRepository.GetAllAsync();
             return tournamentInstances;
         }
+
+        public async Task<List<TournamentInstance>> GetByTournamentIdAsync(int tournamentId)
+        {
+            var tournamentInstances = await _tournamentInstanceRepository.GetAllAsync();
+            return tournamentInstances.Where(ti => ti.TournamentId == tournamentId).ToList();
+        }
     }
 }

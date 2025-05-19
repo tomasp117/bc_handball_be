@@ -37,5 +37,13 @@ namespace bc_handball_be.API.Controllers
             var tournamentInstancesDto = _mapper.Map<List<TournamentInstanceDTO>>(tournamentInstances);
             return Ok(tournamentInstancesDto);
         }
+
+        [HttpGet("by-tournament")]
+        public async Task<IActionResult> GetByTournamentId([FromQuery] int tournamentId)
+        {
+            var instances = await _tournamentInstanceService.GetByTournamentIdAsync(tournamentId);
+            var instancesDto = _mapper.Map<List<TournamentInstanceDTO>>(instances);
+            return Ok(instancesDto);
+        }
     }
 }

@@ -5,6 +5,8 @@ using bc_handball_be.Core.Entities;
 using bc_handball_be.Core.Entities.Actors.sub;
 using bc_handball_be.Core.Entities.Actors.super;
 using bc_handball_be.Core.Services.Models;
+using System.Globalization;
+using System.Text;
 
 namespace bc_handball_be.API.Mapping
 {
@@ -92,11 +94,16 @@ namespace bc_handball_be.API.Mapping
                 .IncludeBase<Club, ClubDTO>()
                 .ForMember(dest => dest.Teams, opt => opt.MapFrom(src => src.Teams));
 
+            CreateMap<ClubCsvDTO, Club>()
+                .ForMember(dest => dest.Logo, opt => opt.MapFrom(src =>
+                    RemoveDiacritics(src.Name.ToLower().Replace(" ", "-"))
+                ));
+
             // Event
             CreateMap<EventDTO, Event>();
 
             CreateMap<Event, EventDTO>();
-                //.ForMember(dest => dest.Type, opt => opt.MapFrom(src => src.Type.ToString()));
+            //.ForMember(dest => dest.Type, opt => opt.MapFrom(src => src.Type.ToString()));
 
             // Group
             CreateMap<Group, GroupDTO>()
@@ -121,7 +128,7 @@ namespace bc_handball_be.API.Mapping
             CreateMap<BracketGroupDTO, Group>()
                 .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name))
                 .ForMember(dest => dest.TeamGroups, opt => opt.Ignore())
-                .ForMember(dest => dest.CategoryId, opt => opt.Ignore()) 
+                .ForMember(dest => dest.CategoryId, opt => opt.Ignore())
                 .ForMember(dest => dest.Matches, opt => opt.Ignore());
 
             CreateMap<GroupStanding, GroupStandingDTO>();
@@ -139,7 +146,7 @@ namespace bc_handball_be.API.Mapping
                 .ForMember(dest => dest.Events, opt => opt.MapFrom(src => src.Events))
                 .ForMember(dest => dest.MainRefereeName, opt => opt.MapFrom(src => src.MainReferee != null ? $"{src.MainReferee.Person.FirstName} {src.MainReferee.Person.LastName}" : null))
                 .ForMember(dest => dest.AssistantRefereeName, opt => opt.MapFrom(src => src.AssistantReferee != null ? $"{src.AssistantReferee.Person.FirstName} {src.AssistantReferee.Person.LastName}" : null));
-            
+
             CreateMap<UnassignedMatch, UnassignedMatchDTO>()
                 .ForMember(dest => dest.HomeTeamId, opt => opt.MapFrom(src => src.HomeTeam.Id))
                 .ForMember(dest => dest.HomeTeamName, opt => opt.MapFrom(src => src.HomeTeam.Name))
@@ -193,6 +200,25 @@ namespace bc_handball_be.API.Mapping
             //    .IncludeBase<Referee, RefereeDTO>()
             //    .ForMember(dest => dest.MainRefereeMatchIds, opt => opt.MapFrom(src => src.MainRefereeMatches.Select(m => m.Id)))
             //    .ForMember(dest => dest.AssistantRefereeMatchIds, opt => opt.MapFrom(src => src.AssistantRefereeMatches.Select(m => m.Id)));
+
+
+        }
+
+        private static string RemoveDiacritics(string input)
+        {
+            var normalized = input.Normalize(NormalizationForm.FormD);
+            var sb = new StringBuilder();
+
+            foreach (var c in normalized)
+            {
+                var unicodeCategory = CharUnicodeInfo.GetUnicodeCategory(c);
+                if (unicodeCategory != UnicodeCategory.NonSpacingMark)
+                {
+                    sb.Append(c);
+                }
+            }
+
+            return sb.ToString().Normalize(NormalizationForm.FormC);
         }
     }
 }

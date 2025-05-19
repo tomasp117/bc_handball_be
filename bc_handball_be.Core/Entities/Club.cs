@@ -9,9 +9,12 @@ namespace bc_handball_be.Core.Entities
         public string Name { get; set; } = string.Empty;
         public string Logo { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
-        public string Address { get; set; } = string.Empty;
+        public string? Address { get; set; }
 
         public ClubAdmin? ClubAdmin { get; set; } = null!;
+
+        public string? State { get; set; }
+        public string? Website { get; set; }
 
 
         // Navigation properties

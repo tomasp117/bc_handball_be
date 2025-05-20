@@ -34,5 +34,33 @@ namespace bc_handball_be.Infrastructure.Repositories
                 .Include(ti => ti.Tournament)
                 .ToListAsync();
         }
+
+        public async Task<TournamentInstance> GetByIdAsync(int id)
+        {
+            return await _context.TournamentInstances
+                .Include(ti => ti.Tournament)
+                .FirstOrDefaultAsync(ti => ti.Id == id);
+        }
+
+        public async Task UpdateAsync(TournamentInstance tournamentInstance)
+        {
+            _logger.LogInformation($"Updating tournament instance with ID {tournamentInstance.Id}");
+            _context.TournamentInstances.Update(tournamentInstance);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task DeleteAsync(int id)
+        {
+            var tournamentInstance = await GetByIdAsync(id);
+            if (tournamentInstance != null)
+            {
+                _context.TournamentInstances.Remove(tournamentInstance);
+                await _context.SaveChangesAsync();
+            }
+            else
+            {
+                _logger.LogWarning($"Tournament instance with ID {id} not found.");
+            }
+        }
     }
 }

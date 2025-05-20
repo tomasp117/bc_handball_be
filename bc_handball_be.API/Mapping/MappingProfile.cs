@@ -88,7 +88,8 @@ namespace bc_handball_be.API.Mapping
                 .ForMember(dest => dest.TournamentInstance, opt => opt.Ignore());
 
             // Club
-            CreateMap<Club, ClubDTO>();
+
+            CreateMap<Club, ClubDTO>().ReverseMap();
 
             CreateMap<Club, ClubDetailDTO>()
                 .IncludeBase<Club, ClubDTO>()
@@ -98,6 +99,14 @@ namespace bc_handball_be.API.Mapping
                 .ForMember(dest => dest.Logo, opt => opt.MapFrom(src =>
                     RemoveDiacritics(src.Name.ToLower().Replace(" ", "-"))
                 ));
+
+            CreateMap<ClubDTO, Club>()
+                .ForMember(dest => dest.Logo, opt => opt.MapFrom(src =>
+                    string.IsNullOrWhiteSpace(src.Logo)
+                        ? RemoveDiacritics(src.Name.ToLower().Replace(" ", "-"))
+                        : src.Logo
+                ));
+
 
             // Event
             CreateMap<EventDTO, Event>();

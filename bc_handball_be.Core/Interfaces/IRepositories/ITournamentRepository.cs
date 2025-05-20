@@ -11,5 +11,8 @@ namespace bc_handball_be.Core.Interfaces.IRepositories
     {
         Task AddAsync(Tournament tournament);
         Task<List<Tournament>> GetAllAsync();
+        Task<Tournament> GetByIdAsync(int id);
+        Task UpdateAsync(Tournament tournament);
+        Task DeleteAsync(int id);
     }
 }

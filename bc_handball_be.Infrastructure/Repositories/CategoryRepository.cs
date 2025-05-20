@@ -51,5 +51,36 @@ namespace bc_handball_be.Infrastructure.Repositories
             await _context.SaveChangesAsync();
             return category;
         }
+
+        public async Task<Category> UpdateAsync(Category category)
+        {
+            _logger.LogInformation("Updating category {category}", category);
+            _context.Categories.Update(category);
+            await _context.SaveChangesAsync();
+            return category;
+        }
+
+        public async Task<bool> DeleteAsync(int id)
+        {
+            _logger.LogInformation("Deleting category with id {id}", id);
+            var category = await _context.Categories.FindAsync(id);
+            if (category == null)
+            {
+                _logger.LogWarning("Category with id {id} not found", id);
+                return false;
+            }
+            _context.Categories.Remove(category);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<List<Category>> GetByTournamentInstanceIdAsync(int tournamentInstanceId)
+        {
+            _logger.LogInformation("Fetching categories for tournament instance id {tournamentInstanceId}", tournamentInstanceId);
+            var categories = await _context.Categories
+                .Where(c => c.TournamentInstanceId == tournamentInstanceId)
+                .ToListAsync();
+            return categories;
+        }
     }
 }

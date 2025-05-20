@@ -95,6 +95,34 @@ namespace bc_handball_be.API.Controllers
             }
         }
 
+        [Authorize(Roles = "Admin")]
+        [HttpPut("categories/{id}")]
+        public async Task<IActionResult> Update(int id, [FromBody] CategoryDTO dto)
+        {
+            if (id != dto.Id) return BadRequest("ID mismatch");
+            var updated = await _categoryService.UpdateCategoryAsync(_mapper.Map<Category>(dto));
+            if (updated == null) return NotFound();
+            return Ok(updated);
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpDelete("categories/{id}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var result = await _categoryService.DeleteCategoryAsync(id);
+            if (!result) return NotFound();
+            return NoContent();
+        }
+
+
+        [HttpGet("categories/by-instance")]
+        public async Task<IActionResult> GetByInstance([FromQuery] int instanceId)
+        {
+            var categories = await _categoryService.GetByTournamentInstanceIdAsync(instanceId);
+            var dto = _mapper.Map<List<CategoryDTO>>(categories);
+            return Ok(dto);
+        }
+
 
     }
 }

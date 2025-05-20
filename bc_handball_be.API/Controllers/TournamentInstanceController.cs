@@ -45,5 +45,40 @@ namespace bc_handball_be.API.Controllers
             var instancesDto = _mapper.Map<List<TournamentInstanceDTO>>(instances);
             return Ok(instancesDto);
         }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(int id)
+        {
+            var instance = await _tournamentInstanceService.GetByIdAsync(id);
+            if (instance == null)
+                return NotFound();
+
+            var dto = _mapper.Map<TournamentInstanceDTO>(instance);
+            return Ok(dto);
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(int id, [FromBody] TournamentInstanceDTO dto)
+        {
+            if (id != dto.Id)
+                return BadRequest("ID mismatch");
+
+            var instance = _mapper.Map<TournamentInstance>(dto);
+            var updated = await _tournamentInstanceService.UpdateTournamentInstanceAsync(instance);
+            if (updated == null)
+                return NotFound();
+
+            return Ok(updated);
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var instance = await _tournamentInstanceService.GetByIdAsync(id);
+            if (instance == null)
+                return NotFound();
+            await _tournamentInstanceService.DeleteTournamentInstanceAsync(id);
+            return NoContent();
+        }
     }
 }

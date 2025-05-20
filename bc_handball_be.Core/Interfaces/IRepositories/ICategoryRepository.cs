@@ -12,5 +12,8 @@ namespace bc_handball_be.Core.Interfaces.IRepositories
         public Task<IEnumerable<Category>> GetCategoriesAsync(int edition);
         public Task<Category> GetCategoryByIdAsync(int id);
         public Task<Category> AddAsync(Category category);
+        public Task<Category> UpdateAsync(Category category);
+        public Task<bool> DeleteAsync(int id);
+        public Task<List<Category>> GetByTournamentInstanceIdAsync(int tournamentInstanceId);
     }
 }

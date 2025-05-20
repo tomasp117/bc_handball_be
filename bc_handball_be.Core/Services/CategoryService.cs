@@ -37,9 +37,45 @@ namespace bc_handball_be.Core.Services
             if (category == null)
             {
                 logger.LogError("Category is null");
-                throw new ArgumentNullException(nameof(category));
+                return null!;
             }
             return await _categoryRepository.AddAsync(category);
+        }
+
+        public async Task<Category> UpdateCategoryAsync(Category category)
+        {
+            if (category == null)
+            {
+                logger.LogError("Category is null");
+                return null!;
+            }
+            var existingCategory = await _categoryRepository.GetCategoryByIdAsync(category.Id);
+            if (existingCategory == null)
+            {
+                logger.LogError("Category with ID {Id} not found", category.Id);
+                return null!;
+            }
+            existingCategory.Name = category.Name;
+
+
+            return await _categoryRepository.UpdateAsync(existingCategory);
+        }
+
+        public async Task<bool> DeleteCategoryAsync(int id)
+        {
+            var category = await _categoryRepository.GetCategoryByIdAsync(id);
+            if (category == null)
+            {
+                logger.LogError("Category with ID {Id} not found", id);
+                return false;
+            }
+            return await _categoryRepository.DeleteAsync(id);
+        }
+
+        public async Task<List<Category>> GetByTournamentInstanceIdAsync(int tournamentInstanceId)
+        {
+            var categories = await _categoryRepository.GetByTournamentInstanceIdAsync(tournamentInstanceId);
+            return categories.ToList();
         }
 
     }

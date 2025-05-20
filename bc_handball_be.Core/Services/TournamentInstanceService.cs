@@ -38,5 +38,40 @@ namespace bc_handball_be.Core.Services
             var tournamentInstances = await _tournamentInstanceRepository.GetAllAsync();
             return tournamentInstances.Where(ti => ti.TournamentId == tournamentId).ToList();
         }
+
+        public async Task<TournamentInstance> GetByIdAsync(int id)
+        {
+            var tournamentInstance = await _tournamentInstanceRepository.GetByIdAsync(id);
+            return tournamentInstance;
+        }
+
+        public async Task<TournamentInstance> UpdateTournamentInstanceAsync(TournamentInstance tournamentInstance)
+        {
+            var existingTournamentInstance = await _tournamentInstanceRepository.GetByIdAsync(tournamentInstance.Id);
+            if (existingTournamentInstance == null)
+            {
+                _logger.LogWarning($"TournamentInstance with ID {tournamentInstance.Id} not found.");
+                throw new Exception($"TournamentInstance with ID {tournamentInstance.Id} not found.");
+            }
+            existingTournamentInstance.EditionNumber = tournamentInstance.EditionNumber;
+            existingTournamentInstance.StartDate = tournamentInstance.StartDate;
+            existingTournamentInstance.EndDate = tournamentInstance.EndDate;
+            await _tournamentInstanceRepository.UpdateAsync(existingTournamentInstance);
+            return existingTournamentInstance;
+        }
+        
+        public async Task DeleteTournamentInstanceAsync(int id)
+        {
+            var tournamentInstance = await _tournamentInstanceRepository.GetByIdAsync(id);
+            if (tournamentInstance != null)
+            {
+                await _tournamentInstanceRepository.DeleteAsync(id);
+            }
+            else
+            {
+                _logger.LogWarning($"TournamentInstance with ID {id} not found.");
+                throw new Exception($"TournamentInstance with ID {id} not found.");
+            }
+        }
     }
 }

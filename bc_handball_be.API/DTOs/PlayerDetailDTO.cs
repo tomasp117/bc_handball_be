@@ -6,6 +6,6 @@
         public string? TeamName { get; set; }
 
         public int CategoryId { get; set; }
-        public string CategoryName { get; set; } = string.Empty;
+        //public string CategoryName { get; set; } = string.Empty;
     }
 }

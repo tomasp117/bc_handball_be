@@ -17,12 +17,14 @@ namespace bc_handball_be.Core.Services
         private readonly IPlayerRepository _playerRepository;
         private readonly ILogger<PlayerService> _logger;
         private readonly IPersonService _personService;
+        private readonly IEventService _eventService;
 
-        public PlayerService(IPlayerRepository playerRepository, ILogger<PlayerService> logger, IPersonService personService)
+        public PlayerService(IPlayerRepository playerRepository, ILogger<PlayerService> logger, IPersonService personService, IEventService eventService)
         {
             _playerRepository = playerRepository;
             _logger = logger;
             _personService = personService;
+            _eventService = eventService;
         }
 
         public async Task AddPlayerAsync(Player newPlayer)
@@ -77,6 +79,102 @@ namespace bc_handball_be.Core.Services
             existingPlayer.Person.LastName = updatedPlayer.Person.LastName;
 
             await _playerRepository.UpdatePlayerAsync(existingPlayer);
+        }
+
+        public async Task<List<Player>> GetFreePlayersAsync(int categoryId)
+        {
+            var players = await _playerRepository.GetAllPlayersAsync();
+            var freePlayers = players.Where(p => p.CategoryId == categoryId && p.TeamId == null).ToList();
+            return freePlayers;
+        }
+
+        public async Task RemoveFromTeamAsync(int playerId)
+        {
+            var player = await _playerRepository.GetPlayerByIdAsync(playerId);
+            if (player == null) throw new Exception("Hráč nenalezen");
+            player.TeamId = null;
+            await _playerRepository.UpdatePlayerAsync(player);
+        }
+
+        public async Task AddPlayerToTeamAsync(int playerId, int teamId)
+        {
+            var player = await _playerRepository.GetPlayerByIdAsync(playerId);
+            if (player == null) throw new Exception("Hráč nenalezen");
+            player.TeamId = teamId;
+            await _playerRepository.UpdatePlayerAsync(player);
+        }
+
+        public async Task ApplyMatchStatsAsync(int matchId)
+        {
+            var events = await _eventService.GetEventsByMatchIdAsync(matchId);
+            var groupedByPlayer = events.Where(e => e.AuthorId != null)
+                .GroupBy(e => e.AuthorId);
+
+            foreach (var group in groupedByPlayer)
+            {
+                var player = await _playerRepository.GetPlayerByIdAsync(group.Key.Value);
+                foreach (var e in group)
+                {
+                    switch (e.Type)
+                    {
+                        case "G":
+                            player.GoalCount++;
+                            break;
+                        case "7G":
+                            player.SevenMeterGoalCount++;
+                            break;
+                        case "7N":
+                            player.SevenMeterMissCount++;
+                            break;
+                        case "2":
+                            player.TwoMinPenaltyCount++;
+                            break;
+                        case "Y":
+                            player.YellowCardCount++;
+                            break;
+                        case "R":
+                            player.RedCardCount++;
+                            break;
+                    }
+                    await _playerRepository.UpdatePlayerAsync(player);
+                }
+            }
+        }
+
+        public async Task RevertMatchStatsAsync(int matchId)
+        {
+            var events = await _eventService.GetEventsByMatchIdAsync(matchId);
+            var groupedByPlayer = events.Where(e => e.AuthorId != null)
+                .GroupBy(e => e.AuthorId);
+            foreach (var group in groupedByPlayer)
+            {
+                var player = await _playerRepository.GetPlayerByIdAsync(group.Key.Value);
+                foreach (var e in group)
+                {
+                    switch (e.Type)
+                    {
+                        case "G":
+                            player.GoalCount--;
+                            break;
+                        case "7G":
+                            player.SevenMeterGoalCount--;
+                            break;
+                        case "7N":
+                            player.SevenMeterMissCount--;
+                            break;
+                        case "2":
+                            player.TwoMinPenaltyCount--;
+                            break;
+                        case "Y":
+                            player.YellowCardCount--;
+                            break;
+                        case "R":
+                            player.RedCardCount--;
+                            break;
+                    }
+                    await _playerRepository.UpdatePlayerAsync(player);
+                }
+            }
         }
     }
 }

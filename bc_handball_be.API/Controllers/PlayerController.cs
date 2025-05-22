@@ -23,8 +23,8 @@ namespace bc_handball_be.API.Controllers
         }
 
         [Authorize(Roles = "Admin, Coach")]
-        [HttpPost("")]
-        public async Task<IActionResult> AddPlayer([FromBody] PlayerDetailDTO newPlayer)
+        [HttpPost]
+        public async Task<IActionResult> AddPlayerToTeam([FromBody] PlayerDetailDTO newPlayer)
         {
             _logger.LogInformation("Přidání nového hráče: {FirstName} {LastName}", newPlayer.Person.FirstName, newPlayer.Person.LastName);
             var player = _mapper.Map<Player>(newPlayer);
@@ -53,6 +53,52 @@ namespace bc_handball_be.API.Controllers
             await _playerService.UpdatePlayerAsync(id, player);
             _logger.LogInformation("Hráč s ID {Id} byl úspěšně aktualizován.", id);
             return Ok("Hráč byl úspěšně aktualizován.");
+        }
+
+        [HttpGet("free")]
+        public async Task<IActionResult> GetFreePlayers([FromQuery] int categoryId)
+        {
+            _logger.LogInformation("Získání volných hráčů pro kategorii s ID {CategoryId}", categoryId);
+            var players = await _playerService.GetFreePlayersAsync(categoryId);
+            var dto = _mapper.Map<List<PlayerDetailDTO>>(players);
+            return Ok(dto);
+        }
+
+        [Authorize(Roles = "Coach, Admin")]
+        [HttpPost("{id}/remove-from-team")]
+        public async Task<IActionResult> RemoveFromTeam(int id)
+        {
+            _logger.LogInformation("Odstranění hráče s ID {Id} z týmu", id);
+            await _playerService.RemoveFromTeamAsync(id);
+            return Ok();
+        }
+
+        [Authorize(Roles = "Coach, Admin")]
+        [HttpPost("{id}/assign-to-team")]
+        public async Task<IActionResult> AssignToTeam(int id, [FromBody] int teamId)
+        {
+            _logger.LogInformation("Přiřazení hráče s ID {PlayerId} do týmu {TeamId}", id, teamId);
+            await _playerService.AddPlayerToTeamAsync(id, teamId);
+            return Ok();
+        }
+
+        [Authorize(Roles = "Admin, Recorder")]
+        [HttpPost("apply-match-stats")]
+        public async Task<IActionResult> ApplyMatchStats([FromBody] int matchId)
+        {
+            _logger.LogInformation("Aplikace statistik zápasu pro zápas s ID {MatchId}", matchId);
+            await _playerService.ApplyMatchStatsAsync(matchId);
+            return Ok();
+        }
+
+
+        [Authorize(Roles = "Admin, Recorder")]
+        [HttpPost("revert-match-stats")]
+        public async Task<IActionResult> RevertMatchStats([FromBody] int matchId)
+        {
+            _logger.LogInformation("Vrátit statistiky zápasu pro zápas s ID {MatchId}", matchId);
+            await _playerService.RevertMatchStatsAsync(matchId);
+            return Ok();
         }
     }
 }

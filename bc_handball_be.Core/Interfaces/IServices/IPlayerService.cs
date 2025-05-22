@@ -14,5 +14,10 @@ namespace bc_handball_be.Core.Interfaces.IServices
         Task UpdatePlayerAsync(int id, Player updatedPlayer);
         Task<Player?> GetPlayerByIdAsync(int id);
         Task<IEnumerable<Player>> GetAllPlayersAsync();
+        Task<List<Player>> GetFreePlayersAsync(int categoryId);
+        Task RemoveFromTeamAsync(int playerId);
+        Task AddPlayerToTeamAsync(int playerId, int teamId);
+        Task ApplyMatchStatsAsync(int matchId);
+        Task RevertMatchStatsAsync(int matchId);
     }
 }

@@ -43,9 +43,9 @@ namespace bc_handball_be.API.Mapping
                 .ForMember(dest => dest.Person, opt => opt.MapFrom(src => src.Person));
 
             CreateMap<Player, PlayerDetailDTO>()
-                .IncludeBase<Player, PlayerDTO>() // Převezme mapování z PlayerDTO
-                .ForMember(dest => dest.TeamName, opt => opt.MapFrom(src => src.Team != null ? src.Team.Name : null))
-                .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category.Name));
+                .IncludeBase<Player, PlayerDTO>()
+                .ForMember(dest => dest.TeamName, opt => opt.MapFrom(src => src.Team != null ? src.Team.Name : null));
+                //.ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category.Name));
 
             CreateMap<PlayerDetailDTO, Player>()
                 .ForMember(dest => dest.GoalCount, opt => opt.MapFrom(src => src.GoalCount))
@@ -56,7 +56,7 @@ namespace bc_handball_be.API.Mapping
                 .ForMember(dest => dest.YellowCardCount, opt => opt.MapFrom(src => src.YellowCardCount))
                 .ForMember(dest => dest.Number, opt => opt.MapFrom(src => src.Number))
                 .ForMember(dest => dest.TeamId, opt => opt.MapFrom(src => src.TeamId))
-                .ForMember(dest => dest.CategoryId, opt => opt.MapFrom(src => src.CategoryId))
+                //.ForMember(dest => dest.CategoryId, opt => opt.MapFrom(src => src.CategoryId))
                 .ForMember(dest => dest.Person, opt => opt.MapFrom(src => src.Person));
 
             // Coach

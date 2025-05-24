@@ -95,6 +95,8 @@ namespace bc_handball_be.Core.Services
             // 4. Projedeš zápasy a spočítáš statistiky
             foreach (var match in matches)
             {
+                if(match.State != MatchState.Done)
+                    continue; 
                 if (match.HomeScore == null || match.AwayScore == null)
                     continue;
                 if (match.HomeTeamId == null || match.AwayTeamId == null)

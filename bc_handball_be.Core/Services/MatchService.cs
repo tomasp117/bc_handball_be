@@ -246,8 +246,8 @@ namespace bc_handball_be.Core.Services
                     Time = slot.Time,
                     TimePlayed = "00:00",
                     Playground = slot.Court,
-                    HomeScore = null,
-                    AwayScore = null,
+                    HomeScore = 0,
+                    AwayScore = 0,
                     State = MatchState.Generated
                 });
             }

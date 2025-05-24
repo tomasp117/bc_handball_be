@@ -6,7 +6,9 @@
         public DateTime Time { get; set; }
         public string TimePlayed { get; set; } = string.Empty;
         public string Playground { get; set; } = string.Empty;
-        public string Score { get; set; } = "0:0";
+        public int? HomeScore { get; set; }
+        public int? AwayScore { get; set; }
+        //public string Score { get; set; } = "0:0";
         public string State { get; set; } = "None";
 
         public TeamDetailDTO HomeTeam { get; set; } = null!;

@@ -57,7 +57,7 @@ namespace bc_handball_be.Core.Services
             var sortedTeams = teams.OrderByDescending(t => t.Strength).ToList();
 
             var groups = Enumerable.Range(1, groupCount)
-                .Select(i => new Group { Id = i - 1, Name = $"Skupina {Convert.ToChar('A' + i - 1)}", TeamGroups = new List<TeamGroup>() })
+                .Select(i => new Group { Id = i - 1, Name = $"{Convert.ToChar('A' + i - 1)}", TeamGroups = new List<TeamGroup>() })
                 .ToList();
 
             int direction = 1;
@@ -136,6 +136,8 @@ namespace bc_handball_be.Core.Services
                 {
                     _logger.LogWarning("No teams found for the given category: {CategoryId}", categoryId);
                 }
+
+                teams = teams.Where(t => t.IsPlaceholder == false || t.IsPlaceholder == null).ToList();
                 return teams;
             }
             catch (Exception ex)
@@ -182,6 +184,7 @@ namespace bc_handball_be.Core.Services
                 {
                     _logger.LogWarning("No teams found for the given group: {GroupId}", groupId);
                 }
+                teams = teams.Where(t => t.IsPlaceholder == false || t.IsPlaceholder == null).ToList();
                 return teams;
             }
             catch (Exception ex)

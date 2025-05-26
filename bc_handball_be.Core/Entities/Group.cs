@@ -9,6 +9,8 @@ namespace bc_handball_be.Core.Entities
         // public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
 
+        public string? Phase { get; set; } // e.g. "Group Stage", "Quarterfinals", "Semifinals", "Finals"
+
         // Navigation properties
         //public ICollection<Team> Teams { get; set; } = new List<Team>();
         public ICollection<Match> Matches { get; set; } = new List<Match>();

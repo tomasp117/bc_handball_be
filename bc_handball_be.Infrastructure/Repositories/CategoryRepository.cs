@@ -35,8 +35,8 @@ namespace bc_handball_be.Infrastructure.Repositories
         public async Task<Category> GetCategoryByIdAsync(int id)
         {
             _logger.LogInformation("Fetching category with id {id}", id);
-            var category = await _context.Categories.FirstOrDefaultAsync(c => c.Id == id);
-            if(category == null)
+            var category = await _context.Categories.Include(c => c.TournamentInstance).FirstOrDefaultAsync(c => c.Id == id);
+            if (category == null)
             {
                 _logger.LogWarning("Category with id {id} not found", id);
                 return null;

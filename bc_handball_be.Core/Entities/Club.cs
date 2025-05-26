@@ -16,6 +16,8 @@ namespace bc_handball_be.Core.Entities
         public string? State { get; set; }
         public string? Website { get; set; }
 
+        public bool? IsPlaceholder { get; set; } = false;
+
 
         // Navigation properties
         public ICollection<Team> Teams { get; set; } = new List<Team>();

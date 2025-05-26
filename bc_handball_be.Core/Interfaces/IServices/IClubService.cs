@@ -14,5 +14,6 @@ namespace bc_handball_be.Core.Interfaces.IServices
         Task<List<Club>> GetAllAsync();
         Task<Club> UpdateAsync(Club club);
         Task<bool> DeleteAsync(int id);
+        Task<Club> GetPlaceholderClubAsync();
     }
 }

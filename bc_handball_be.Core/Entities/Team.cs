@@ -23,6 +23,8 @@ namespace bc_handball_be.Core.Entities
         public int TournamentInstanceId { get; set; }
         public TournamentInstance TournamentInstance { get; set; } = null!;
 
+        public bool? IsPlaceholder { get; set; } = false;
+
         //public int? GroupId { get; set; }
         //public Group? Group { get; set; } = null!;
 

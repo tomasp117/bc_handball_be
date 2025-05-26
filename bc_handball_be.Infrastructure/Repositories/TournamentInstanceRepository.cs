@@ -32,6 +32,7 @@ namespace bc_handball_be.Infrastructure.Repositories
         {
             return await _context.TournamentInstances
                 .Include(ti => ti.Tournament)
+                .Include(ti => ti.Categories)
                 .ToListAsync();
         }
 

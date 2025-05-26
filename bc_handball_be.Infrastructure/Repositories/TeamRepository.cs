@@ -24,9 +24,10 @@ namespace bc_handball_be.Infrastructure.Repositories
             _logger = logger;
         }
 
-        public Task AddTeamAsync(Team team)
+        public async Task AddTeamAsync(Team team)
         {
-            throw new NotImplementedException();
+            await _context.Teams.AddAsync(team);
+            await _context.SaveChangesAsync();
         }
 
         public Task DeleteTeamAsync(int id)

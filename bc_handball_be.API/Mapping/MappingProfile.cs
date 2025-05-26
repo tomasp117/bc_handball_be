@@ -37,6 +37,9 @@ namespace bc_handball_be.API.Mapping
                 .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name))
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id));
 
+            CreateMap<PlaceholderTeamDTO, PlaceholderTeam>();
+            CreateMap<PlaceholderTeam, PlaceholderTeamDTO>();
+
 
             // Player
             CreateMap<Player, PlayerDTO>()
@@ -135,12 +138,19 @@ namespace bc_handball_be.API.Mapping
                 .ForMember(dest => dest.Teams, opt => opt.MapFrom(src => src.TeamGroups.Select(tg => tg.Team)));
 
             CreateMap<BracketGroupDTO, Group>()
-                .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name))
-                .ForMember(dest => dest.TeamGroups, opt => opt.Ignore())
-                .ForMember(dest => dest.CategoryId, opt => opt.Ignore())
-                .ForMember(dest => dest.Matches, opt => opt.Ignore());
+                .ForMember(dest => dest.TeamGroups, opt => opt.MapFrom(src =>
+                    src.Teams.Select(t => new TeamGroup
+                    {
+                        TeamId = t.Id
+                    }).ToList()
+                ))
+                .ForMember(dest => dest.Phase, opt => opt.MapFrom(src => src.Phase)) 
+                .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name));
 
             CreateMap<GroupStanding, GroupStandingDTO>();
+
+            CreateMap<PlaceholderGroup, PlaceholderGroupDTO>();
+            CreateMap<PlaceholderGroupDTO, PlaceholderGroup>();
 
             // Match
             CreateMap<Match, MatchDTO>()

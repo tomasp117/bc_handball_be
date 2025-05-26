@@ -17,13 +17,17 @@ namespace bc_handball_be.Core.Services
         private readonly IGroupRepository _groupRepository;
         private readonly ITeamRepository _teamRepository;
         private readonly IMatchRepository _matchRepository;
+        private readonly ITournamentInstanceService _tournamentInstanceService;
+        private readonly IClubService _clubService;
         private readonly ILogger<GroupService> _logger;
 
-        public GroupService(IGroupRepository groupRepository, ITeamRepository teamRepository, IMatchRepository matchRepository, ILogger<GroupService> logger)
+        public GroupService(IGroupRepository groupRepository, ITeamRepository teamRepository, IMatchRepository matchRepository, ILogger<GroupService> logger, ITournamentInstanceService tournamentInstanceService, IClubService clubService)
         {
             _groupRepository = groupRepository;
             _teamRepository = teamRepository;
             _matchRepository = matchRepository;
+            _tournamentInstanceService = tournamentInstanceService;
+            _clubService = clubService;
             _logger = logger;
         }
 
@@ -146,5 +150,59 @@ namespace bc_handball_be.Core.Services
                 .ToList();
         }
 
+        public async Task SavePlaceholderGroupsAsync(List<PlaceholderGroup> placeholderGroups, int categoryId)
+        {
+            if (placeholderGroups == null || !placeholderGroups.Any())
+            {
+                _logger.LogWarning("No placeholder groups provided for category {CategoryId}", categoryId);
+                return;
+            }
+            _logger.LogInformation("Saving {Count} placeholder groups for category {CategoryId}", placeholderGroups.Count, categoryId);
+
+            var tournamentInstance = await _tournamentInstanceService.GetByCategoryIdAsync(categoryId);
+            var placeholderClub = await _clubService.GetPlaceholderClubAsync();
+
+            var groups = new List<Group>();
+
+            foreach (var input in placeholderGroups)
+            {
+                var group = new Group
+                {
+                    Name = input.Name,
+                    Phase = input.Phase,
+                    CategoryId = categoryId,
+                    TeamGroups = new List<TeamGroup>()
+                };
+
+                foreach (var teamInput in input.Teams)
+                {
+                    var team = new Team
+                    {
+                        Name = teamInput.Name,
+                        ClubId = placeholderClub.Id,
+                        CategoryId = categoryId,
+                        TournamentInstanceId = tournamentInstance.Id,
+                        IsPlaceholder = true
+                    };
+
+                    await _teamRepository.AddTeamAsync(team);
+
+                    group.TeamGroups.Add(new TeamGroup
+                    {
+                        Team = team,
+                        Group = group
+                    });
+                }
+
+                groups.Add(group);
+            }
+
+            await _groupRepository.SaveGroupsAsync(groups, categoryId);
+        }
+
+        public async Task<List<Group>> GetGroupsWithPlaceholderTeamsAsync(int categoryId)
+        {
+            return await _groupRepository.GetGroupsWithPlaceholderTeamsAsync(categoryId);
+        }
     }
 }

@@ -46,8 +46,10 @@ namespace bc_handball_be.Infrastructure.Repositories
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
+                var newPhaseNames = newGroups.Select(g => g.Phase).Distinct();
+
                 var groupsToDelete = await _context.Groups
-                    .Where(g => g.CategoryId == categoryId)
+                    .Where(g => g.CategoryId == categoryId && g.Phase != null && newPhaseNames.Contains(g.Phase))
                     .ToListAsync();
 
                 if (groupsToDelete.Any())
@@ -68,7 +70,8 @@ namespace bc_handball_be.Infrastructure.Repositories
                         Id = 0,
                         Name = g.Name,
                         CategoryId = categoryId,
-                        TeamGroups = g.TeamGroups
+                        Phase = g.Phase,
+                        TeamGroups = g.TeamGroups,
                     })
                     .ToList();
 
@@ -94,6 +97,25 @@ namespace bc_handball_be.Infrastructure.Repositories
             }
         }
 
+        public async Task SaveBracketGroupsAsync(IEnumerable<Group> groups, int categoryId)
+        {
+            foreach (var group in groups)
+            {
+                group.CategoryId = categoryId;
+                group.Id = 0; // nové skupiny
+
+                // validace existence týmů / navázání
+                foreach (var tg in group.TeamGroups)
+                {
+                    _context.Attach(tg.Team);
+                }
+
+                _context.Groups.Add(group);
+            }
+
+            await _context.SaveChangesAsync();
+        }
+
         public async Task<List<Group>> GetGroupsAsync()
         {
             _logger.LogInformation("Fetching all groups");
@@ -104,6 +126,19 @@ namespace bc_handball_be.Infrastructure.Repositories
                 .Include(g => g.Category)
                 .ToListAsync();
             _logger.LogInformation("Fetched {Count} groups", groups.Count);
+            return groups;
+        }
+
+        public async Task<List<Group>> GetGroupsWithPlaceholderTeamsAsync(int categoryId)
+        {
+            _logger.LogInformation("Fetching groups with placeholder teams for category {CategoryId}", categoryId);
+            var groups = await _context.Groups
+                .Include(g => g.TeamGroups)
+                    .ThenInclude(tg => tg.Team)
+                .Include(g => g.Category)
+                .Where(g => g.CategoryId == categoryId &&
+                    g.TeamGroups.Any(tg => tg.Team.IsPlaceholder == true))
+                .ToListAsync();
             return groups;
         }
 

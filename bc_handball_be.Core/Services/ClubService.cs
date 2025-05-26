@@ -62,5 +62,17 @@ namespace bc_handball_be.Core.Services
             return await _clubRepository.UpdateAsync(existingClub);
 
         }
+
+        public async Task<Club> GetPlaceholderClubAsync()
+        {
+            var clubs = await _clubRepository.GetAllAsync();
+            var placeholderClub = clubs.FirstOrDefault(c => c.IsPlaceholder == true);
+            if (placeholderClub == null)
+            {
+                _logger.LogWarning("No placeholder club found.");
+                return null;
+            }
+            return placeholderClub;
+        }
     }
 }

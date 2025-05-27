@@ -157,12 +157,14 @@ namespace bc_handball_be.Core.Services
                 _logger.LogWarning("No placeholder groups provided for category {CategoryId}", categoryId);
                 return;
             }
+
             _logger.LogInformation("Saving {Count} placeholder groups for category {CategoryId}", placeholderGroups.Count, categoryId);
 
             var tournamentInstance = await _tournamentInstanceService.GetByCategoryIdAsync(categoryId);
             var placeholderClub = await _clubService.GetPlaceholderClubAsync();
 
             var groups = new List<Group>();
+            var usedTeamIds = new HashSet<int>();
 
             foreach (var input in placeholderGroups)
             {
@@ -176,16 +178,35 @@ namespace bc_handball_be.Core.Services
 
                 foreach (var teamInput in input.Teams)
                 {
-                    var team = new Team
-                    {
-                        Name = teamInput.Name,
-                        ClubId = placeholderClub.Id,
-                        CategoryId = categoryId,
-                        TournamentInstanceId = tournamentInstance.Id,
-                        IsPlaceholder = true
-                    };
+                    Team team;
 
-                    await _teamRepository.AddTeamAsync(team);
+                    if (teamInput.Id != null)
+                    {
+                        // Reálný tým
+                        team = await _teamRepository.GetTeamByIdAsync(teamInput.Id.Value);
+                        if (team == null)
+                        {
+                            _logger.LogWarning("Tým s ID {TeamId} nebyl nalezen.", teamInput.Id.Value);
+                            continue;
+                        }
+
+                        usedTeamIds.Add(team.Id);
+                    }
+                    else
+                    {
+                        // Placeholder tým
+                        team = new Team
+                        {
+                            Name = teamInput.Name,
+                            ClubId = placeholderClub.Id,
+                            CategoryId = categoryId,
+                            TournamentInstanceId = tournamentInstance.Id,
+                            IsPlaceholder = true
+                        };
+
+                        await _teamRepository.AddTeamAsync(team);
+                        usedTeamIds.Add(team.Id); // nový tým má ID po vložení
+                    }
 
                     group.TeamGroups.Add(new TeamGroup
                     {
@@ -198,7 +219,21 @@ namespace bc_handball_be.Core.Services
             }
 
             await _groupRepository.SaveGroupsAsync(groups, categoryId);
+
+            // ⛔ Odstranit osiřelé placeholder týmy, které nejsou mezi použitémi
+            var allPlaceholderTeams = await _teamRepository.GetPlaceholderTeamsByCategoryAsync(categoryId);
+
+            var orphaned = allPlaceholderTeams
+                .Where(t => !usedTeamIds.Contains(t.Id))
+                .ToList();
+
+            foreach (var team in orphaned)
+            {
+                await _teamRepository.DeleteTeamAsync(team.Id);
+                _logger.LogInformation("Odstraněn osiřelý placeholder tým: {TeamName} (ID: {TeamId})", team.Name, team.Id);
+            }
         }
+
 
         public async Task<List<Group>> GetGroupsWithPlaceholderTeamsAsync(int categoryId)
         {

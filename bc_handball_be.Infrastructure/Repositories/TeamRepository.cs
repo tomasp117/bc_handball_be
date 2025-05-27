@@ -30,9 +30,12 @@ namespace bc_handball_be.Infrastructure.Repositories
             await _context.SaveChangesAsync();
         }
 
-        public Task DeleteTeamAsync(int id)
+        public async Task DeleteTeamAsync(int id)
         {
-            throw new NotImplementedException();
+            await _context.Teams
+                .Where(t => t.Id == id)
+                .ExecuteDeleteAsync();
+            await _context.SaveChangesAsync();
         }
 
         public async Task<Team?> GetTeamByIdAsync(int id)
@@ -100,6 +103,13 @@ namespace bc_handball_be.Infrastructure.Repositories
         public Task UpdateTeamAsync(Team team)
         {
             throw new NotImplementedException();
+        }
+
+        public async Task<List<Team>> GetPlaceholderTeamsByCategoryAsync(int categoryId)
+        {
+            return await _context.Teams
+                .Where(t => t.IsPlaceholder == true && t.CategoryId == categoryId)
+                .ToListAsync();
         }
     }
 }

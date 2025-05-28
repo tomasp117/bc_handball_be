@@ -15,5 +15,6 @@ namespace bc_handball_be.Core.Interfaces.IRepositories
         Task AddUserWithRoleAsync(Person user, Login login, object roleEntity);
         Task<IEnumerable<Person>> GetAllUsersAsync();
         Task<string> GetUserRoleAsync(int personId);
+        Task<bool> UsernameExistsAsync(string username);
     }
 }

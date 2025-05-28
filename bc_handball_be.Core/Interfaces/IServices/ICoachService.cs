@@ -1,4 +1,5 @@
 ﻿using bc_handball_be.Core.Entities;
+using bc_handball_be.Core.Entities.Actors.sub;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,5 +11,6 @@ namespace bc_handball_be.Core.Interfaces.IServices
     public interface ICoachService
     {
         Task<Team?> GetTeamForPersonIdAsync(int personId);
+        Task CreateCoachAsync(Coach coach);
     }
 }

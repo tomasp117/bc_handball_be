@@ -29,7 +29,7 @@ namespace bc_handball_be.Infrastructure.Repositories
                 var coach = await _context.Coaches
                     .Include(c => c.Team)
                         .ThenInclude(t => t.Players)
-                            .ThenInclude(p => p.Person)   
+                            .ThenInclude(p => p.Person)
                     .Include(c => c.Team)
                         .ThenInclude(t => t.Category)
                             .ThenInclude(c => c.TournamentInstance)
@@ -43,6 +43,22 @@ namespace bc_handball_be.Infrastructure.Repositories
             {
                 _logger.LogError(ex, "Error retrieving coach with PersonId {PersonId}", personId);
                 return null;
+            }
+        }
+
+        public async Task AddAsync(Coach coach)
+        {
+            if (coach == null) throw new ArgumentNullException(nameof(coach));
+            try
+            {
+                await _context.Coaches.AddAsync(coach);
+                await _context.SaveChangesAsync();
+                _logger.LogInformation("Coach with ID {CoachId} added successfully.", coach.Id);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error adding coach with ID {CoachId}.", coach.Id);
+                throw;
             }
         }
     }

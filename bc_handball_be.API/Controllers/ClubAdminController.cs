@@ -1,4 +1,8 @@
-﻿using bc_handball_be.Core.Interfaces.IServices;
+﻿using AutoMapper;
+using bc_handball_be.API.DTOs;
+using bc_handball_be.Core.Interfaces.IServices;
+using bc_handball_be.Core.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
@@ -8,11 +12,13 @@ namespace bc_handball_be.API.Controllers
     {
         private readonly ILogger<ClubAdminController> _logger;
         private readonly IClubAdminService _clubAdminService;
+        private readonly IMapper _mapper;
 
-        public ClubAdminController(ILogger<ClubAdminController> logger, IClubAdminService clubAdminService)
+        public ClubAdminController(ILogger<ClubAdminController> logger, IClubAdminService clubAdminService, IMapper mapper)
         {
             _logger = logger;
             _clubAdminService = clubAdminService;
+            _mapper = mapper;
         }
 
         [HttpGet("my-club")]
@@ -29,11 +35,11 @@ namespace bc_handball_be.API.Controllers
                 return NotFound("Club not found");
             }
 
-            return Ok(club);
+            var clubDto = _mapper.Map<ClubDetailDTO>(club);
+
+            return Ok(clubDto);
 
         }
-
-
 
     }
 }

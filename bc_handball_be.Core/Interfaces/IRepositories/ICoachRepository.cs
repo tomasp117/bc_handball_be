@@ -10,5 +10,6 @@ namespace bc_handball_be.Core.Interfaces.IRepositories
     public interface ICoachRepository
     {
         Task<Coach?> GetByPersonIdAsync(int personId);
+        Task AddAsync(Coach coach);
     }
 }

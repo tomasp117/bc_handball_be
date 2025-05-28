@@ -2,6 +2,6 @@
 {
     public class ClubDetailDTO : ClubDTO
     {
-        public List<TeamDTO> Teams { get; set; } = new();
+        public List<TeamDetailDTO> Teams { get; set; } = new();
     }
 }

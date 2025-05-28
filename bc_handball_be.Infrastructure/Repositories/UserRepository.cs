@@ -78,5 +78,11 @@ namespace bc_handball_be.Infrastructure.Repositories
 
             return "User";
         }
+
+        public async Task<bool> UsernameExistsAsync(string username)
+        {
+            return await _context.Logins.AnyAsync(l => l.Username == username);
+        }
+
     }
 }

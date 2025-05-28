@@ -27,8 +27,22 @@ namespace bc_handball_be.Infrastructure.Repositories
             try
             {
                 var clubAdmin = await _context.ClubAdmins
-                    .Include(c => c.Club)
-                    .FirstOrDefaultAsync(c => c.PersonId == personId);
+                    .Include(ca => ca.Club)
+                        .ThenInclude(club => club.Teams)
+                            .ThenInclude(team => team.Players)
+                                .ThenInclude(player => player.Person)
+                    .Include(ca => ca.Club)
+                        .ThenInclude(club => club.Teams)
+                            .ThenInclude(team => team.Coach)
+                                .ThenInclude(coach => coach.Person)
+                    .Include(ca => ca.Club)
+                        .ThenInclude(club => club.Teams)
+                            .ThenInclude(team => team.Category)
+                    .Include(ca => ca.Club)
+                        .ThenInclude(club => club.Teams)
+                            .ThenInclude(team => team.TournamentInstance)
+                    .Include(ca => ca.Person)
+                    .FirstOrDefaultAsync(ca => ca.PersonId == personId);
 
                 if (clubAdmin == null)
                 {

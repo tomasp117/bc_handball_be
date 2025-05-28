@@ -70,6 +70,14 @@ namespace bc_handball_be.API.Mapping
                 .ForMember(dest => dest.TeamName, opt => opt.MapFrom(src => src.Team != null ? src.Team.Name : string.Empty))
                 .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category != null ? src.Category.Name : string.Empty));
 
+            
+
+            CreateMap<CreateCoachDTO, Coach>()
+                .ForMember(dest => dest.Person, opt => opt.MapFrom(src => src)) // použije mapování výše
+                .ForMember(dest => dest.TeamId, opt => opt.MapFrom(src => src.TeamId))
+                .ForMember(dest => dest.CategoryId, opt => opt.MapFrom(src => src.CategoryId))
+                .ForMember(dest => dest.License, opt => opt.MapFrom(src => src.License));
+
             // Category
             CreateMap<Category, CategoryDTO>();
 
@@ -210,6 +218,14 @@ namespace bc_handball_be.API.Mapping
 
             CreateMap<Person, PersonDetailDTO>()
                 .IncludeBase<Person, PersonDTO>();
+
+            CreateMap<CreateCoachDTO, Person>()
+                .ForMember(dest => dest.Login, opt => opt.MapFrom(src => new Login
+                {
+                    Username = src.Username,
+                    Password = "", 
+                    Salt = ""
+                }));
 
             //// Referee
             //CreateMap<Referee, RefereeDTO>()

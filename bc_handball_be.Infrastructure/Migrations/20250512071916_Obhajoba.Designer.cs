@@ -12,8 +12,8 @@ using bc_handball_be.Infrastructure.Persistence;
 namespace bc_handball_be.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250426135429_EventChange")]
-    partial class EventChange
+    [Migration("20250512071916_Obhajoba")]
+    partial class Obhajoba
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

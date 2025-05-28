@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace bc_handball_be.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class Obhajoba : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -26,6 +26,8 @@ namespace bc_handball_be.Infrastructure.Migrations
                     Logo = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Email = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Address = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4")
                 },
                 constraints: table =>
@@ -44,18 +46,13 @@ namespace bc_handball_be.Infrastructure.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     LastName = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    Email = table.Column<string>(type: "longtext", nullable: false)
+                    Email = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    PhoneNumber = table.Column<string>(type: "longtext", nullable: false)
+                    PhoneNumber = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    Username = table.Column<string>(type: "longtext", nullable: false)
+                    Address = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    Password = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    Role = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    Salt = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4")
+                    DateOfBirth = table.Column<DateTime>(type: "datetime(6)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -83,13 +80,68 @@ namespace bc_handball_be.Infrastructure.Migrations
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    PersonId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Admin", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Admin_Person_Id",
-                        column: x => x.Id,
+                        name: "FK_Admin_Person_PersonId",
+                        column: x => x.PersonId,
+                        principalTable: "Person",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "ClubAdmin",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    ClubId = table.Column<int>(type: "int", nullable: false),
+                    PersonId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ClubAdmin", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ClubAdmin_Club_ClubId",
+                        column: x => x.ClubId,
+                        principalTable: "Club",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ClubAdmin_Person_PersonId",
+                        column: x => x.PersonId,
+                        principalTable: "Person",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "Login",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    Username = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Password = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Salt = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    PersonId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Login", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Login_Person_PersonId",
+                        column: x => x.PersonId,
                         principalTable: "Person",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -101,13 +153,15 @@ namespace bc_handball_be.Infrastructure.Migrations
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    PersonId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Recorder", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Recorder_Person_Id",
-                        column: x => x.Id,
+                        name: "FK_Recorder_Person_PersonId",
+                        column: x => x.PersonId,
                         principalTable: "Person",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -118,16 +172,18 @@ namespace bc_handball_be.Infrastructure.Migrations
                 name: "Referee",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false),
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     License = table.Column<string>(type: "varchar(1)", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4")
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    PersonId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Referee", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Referee_Person_Id",
-                        column: x => x.Id,
+                        name: "FK_Referee_Person_PersonId",
+                        column: x => x.PersonId,
                         principalTable: "Person",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -212,7 +268,8 @@ namespace bc_handball_be.Infrastructure.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     ClubId = table.Column<int>(type: "int", nullable: false),
                     CategoryId = table.Column<int>(type: "int", nullable: false),
-                    TournamentInstanceId = table.Column<int>(type: "int", nullable: false)
+                    TournamentInstanceId = table.Column<int>(type: "int", nullable: false),
+                    GroupId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -230,6 +287,12 @@ namespace bc_handball_be.Infrastructure.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
+                        name: "FK_Team_Group_GroupId",
+                        column: x => x.GroupId,
+                        principalTable: "Group",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
                         name: "FK_Team_TournamentInstance_TournamentInstanceId",
                         column: x => x.TournamentInstanceId,
                         principalTable: "TournamentInstance",
@@ -242,13 +305,15 @@ namespace bc_handball_be.Infrastructure.Migrations
                 name: "Coach",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false),
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     PlayerVoteId = table.Column<int>(type: "int", nullable: true),
                     GoalkeeperVoteId = table.Column<int>(type: "int", nullable: true),
                     License = table.Column<string>(type: "varchar(1)", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     TeamId = table.Column<int>(type: "int", nullable: false),
-                    CategoryId = table.Column<int>(type: "int", nullable: false)
+                    CategoryId = table.Column<int>(type: "int", nullable: false),
+                    PersonId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -260,8 +325,8 @@ namespace bc_handball_be.Infrastructure.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Coach_Person_Id",
-                        column: x => x.Id,
+                        name: "FK_Coach_Person_PersonId",
+                        column: x => x.PersonId,
                         principalTable: "Person",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -289,11 +354,11 @@ namespace bc_handball_be.Infrastructure.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     State = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    HomeTeamId = table.Column<int>(type: "int", nullable: false),
-                    AwayTeamId = table.Column<int>(type: "int", nullable: false),
+                    HomeTeamId = table.Column<int>(type: "int", nullable: true),
+                    AwayTeamId = table.Column<int>(type: "int", nullable: true),
                     MainRefereeId = table.Column<int>(type: "int", nullable: true),
                     AssistantRefereeId = table.Column<int>(type: "int", nullable: true),
-                    GroupId = table.Column<int>(type: "int", nullable: false)
+                    GroupId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -309,13 +374,13 @@ namespace bc_handball_be.Infrastructure.Migrations
                         column: x => x.AssistantRefereeId,
                         principalTable: "Referee",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.SetNull);
                     table.ForeignKey(
                         name: "FK_Match_Referee_MainRefereeId",
                         column: x => x.MainRefereeId,
                         principalTable: "Referee",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.SetNull);
                     table.ForeignKey(
                         name: "FK_Match_Team_AwayTeamId",
                         column: x => x.AwayTeamId,
@@ -338,10 +403,6 @@ namespace bc_handball_be.Infrastructure.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     Number = table.Column<int>(type: "int", nullable: false),
-                    FirstName = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    LastName = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
                     GoalCount = table.Column<int>(type: "int", nullable: false),
                     SevenMeterGoalCount = table.Column<int>(type: "int", nullable: false),
                     SevenMeterMissCount = table.Column<int>(type: "int", nullable: false),
@@ -349,7 +410,8 @@ namespace bc_handball_be.Infrastructure.Migrations
                     RedCardCount = table.Column<int>(type: "int", nullable: false),
                     YellowCardCount = table.Column<int>(type: "int", nullable: false),
                     TeamId = table.Column<int>(type: "int", nullable: true),
-                    CategoryId = table.Column<int>(type: "int", nullable: false)
+                    CategoryId = table.Column<int>(type: "int", nullable: false),
+                    PersonId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -358,6 +420,12 @@ namespace bc_handball_be.Infrastructure.Migrations
                         name: "FK_Player_Category_CategoryId",
                         column: x => x.CategoryId,
                         principalTable: "Category",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Player_Person_PersonId",
+                        column: x => x.PersonId,
+                        principalTable: "Person",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
@@ -375,7 +443,8 @@ namespace bc_handball_be.Infrastructure.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    Type = table.Column<int>(type: "int", nullable: false),
+                    Type = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
                     Team = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Time = table.Column<string>(type: "longtext", nullable: false)
@@ -396,14 +465,37 @@ namespace bc_handball_be.Infrastructure.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Admin_PersonId",
+                table: "Admin",
+                column: "PersonId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Category_TournamentInstanceId",
                 table: "Category",
                 column: "TournamentInstanceId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_ClubAdmin_ClubId",
+                table: "ClubAdmin",
+                column: "ClubId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ClubAdmin_PersonId",
+                table: "ClubAdmin",
+                column: "PersonId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Coach_CategoryId",
                 table: "Coach",
                 column: "CategoryId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Coach_PersonId",
+                table: "Coach",
+                column: "PersonId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Coach_TeamId",
@@ -419,6 +511,12 @@ namespace bc_handball_be.Infrastructure.Migrations
                 name: "IX_Group_CategoryId",
                 table: "Group",
                 column: "CategoryId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Login_PersonId",
+                table: "Login",
+                column: "PersonId",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Match_AssistantRefereeId",
@@ -451,9 +549,26 @@ namespace bc_handball_be.Infrastructure.Migrations
                 column: "CategoryId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Player_PersonId",
+                table: "Player",
+                column: "PersonId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Player_TeamId",
                 table: "Player",
                 column: "TeamId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Recorder_PersonId",
+                table: "Recorder",
+                column: "PersonId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Referee_PersonId",
+                table: "Referee",
+                column: "PersonId",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Team_CategoryId",
@@ -464,6 +579,11 @@ namespace bc_handball_be.Infrastructure.Migrations
                 name: "IX_Team_ClubId",
                 table: "Team",
                 column: "ClubId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Team_GroupId",
+                table: "Team",
+                column: "GroupId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Team_TournamentInstanceId",
@@ -483,10 +603,16 @@ namespace bc_handball_be.Infrastructure.Migrations
                 name: "Admin");
 
             migrationBuilder.DropTable(
+                name: "ClubAdmin");
+
+            migrationBuilder.DropTable(
                 name: "Coach");
 
             migrationBuilder.DropTable(
                 name: "Event");
+
+            migrationBuilder.DropTable(
+                name: "Login");
 
             migrationBuilder.DropTable(
                 name: "Player");
@@ -498,9 +624,6 @@ namespace bc_handball_be.Infrastructure.Migrations
                 name: "Match");
 
             migrationBuilder.DropTable(
-                name: "Group");
-
-            migrationBuilder.DropTable(
                 name: "Referee");
 
             migrationBuilder.DropTable(
@@ -510,10 +633,13 @@ namespace bc_handball_be.Infrastructure.Migrations
                 name: "Person");
 
             migrationBuilder.DropTable(
-                name: "Category");
+                name: "Club");
 
             migrationBuilder.DropTable(
-                name: "Club");
+                name: "Group");
+
+            migrationBuilder.DropTable(
+                name: "Category");
 
             migrationBuilder.DropTable(
                 name: "TournamentInstance");

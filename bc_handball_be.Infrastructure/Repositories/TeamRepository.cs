@@ -43,7 +43,9 @@ namespace bc_handball_be.Infrastructure.Repositories
             return await _context.Teams
                 .Include(t => t.Category)
                 .Include(t => t.TeamGroups)
-                .ThenInclude(tg => tg.Group)
+                    .ThenInclude(tg => tg.Group)
+                .Include(t => t.Players)
+                    .ThenInclude(p => p.Person)
                 .Include(t => t.Club)        
                 .FirstOrDefaultAsync(t => t.Id == id);
         }

@@ -40,7 +40,7 @@ namespace bc_handball_be.API.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "ClubAdmin")]
+        [Authorize(Roles = "ClubAdmin, Admin")]
         public async Task<IActionResult> CreateCoach([FromBody] CreateCoachDTO dto)
         {
             try
@@ -61,6 +61,26 @@ namespace bc_handball_be.API.Controllers
             {
                 _logger.LogError(ex, "Chyba při vytváření trenéra.");
                 return StatusCode(500, "Něco se pokazilo při ukládání trenéra.");
+            }
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteCoach(int id)
+        {
+            try
+            {
+
+                await _coachService.DeleteCoachAsync(id);
+                return Ok();
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound("Trenér nenalezen.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Chyba při mazání trenéra.");
+                return StatusCode(500, "Něco se pokazilo při mazání trenéra.");
             }
         }
     }

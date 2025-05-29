@@ -74,5 +74,20 @@ namespace bc_handball_be.Core.Services
             }
             return placeholderClub;
         }
+
+        public async Task UpdateLogoAsync(int clubId, string logoFileName)
+        {
+            var club = await GetByIdAsync(clubId);
+            if (club == null)
+            {
+                _logger.LogError($"Club with ID {clubId} not found.");
+                return;
+            }
+            club.Logo = logoFileName;
+            
+            await _clubRepository.UpdateAsync(club);
+
+            _logger.LogInformation($"Logo for club {club.Name} updated successfully.");
+        }
     }
 }

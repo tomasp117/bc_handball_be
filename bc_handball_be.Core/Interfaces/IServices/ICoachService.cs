@@ -12,5 +12,6 @@ namespace bc_handball_be.Core.Interfaces.IServices
     {
         Task<Team?> GetTeamForPersonIdAsync(int personId);
         Task CreateCoachAsync(Coach coach);
+        Task DeleteCoachAsync(int coachId);
     }
 }

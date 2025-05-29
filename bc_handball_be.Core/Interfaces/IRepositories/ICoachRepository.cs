@@ -11,5 +11,8 @@ namespace bc_handball_be.Core.Interfaces.IRepositories
     {
         Task<Coach?> GetByPersonIdAsync(int personId);
         Task AddAsync(Coach coach);
+        Task DeleteAsync(int coachId);
+        Task<Coach> GetByIdAsync(int coachId);
+        Task DeleteCoachWithPersonAsync(int coachId);
     }
 }

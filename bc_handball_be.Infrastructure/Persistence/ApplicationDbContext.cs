@@ -107,7 +107,7 @@ namespace bc_handball_be.Infrastructure.Persistence
                 .HasMany(t => t.Players)
                 .WithOne(p => p.Team)
                 .HasForeignKey(p => p.TeamId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.SetNull);
 
             // 1:1 Team - Coach
             modelBuilder.Entity<Coach>()

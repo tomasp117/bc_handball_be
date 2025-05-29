@@ -2,8 +2,8 @@
 {
     public class CoachDTO
     {
+        public int Id { get; set; }
         public char License { get; set; }
-        public int personId { get; set; }
         public PersonDTO Person { get; set; } = new();
     }
 }

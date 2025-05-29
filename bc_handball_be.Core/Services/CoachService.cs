@@ -16,13 +16,15 @@ namespace bc_handball_be.Core.Services
     {
         private readonly ICoachRepository _coachRepository;
         private readonly IUserRepository _userRepository;
+        private readonly IPersonService _personService;
 
         private readonly ILogger<CoachService> _logger;
 
-        public CoachService(ICoachRepository coachRepository, ILogger<CoachService> logger, IUserRepository userRepository)
+        public CoachService(ICoachRepository coachRepository, ILogger<CoachService> logger, IUserRepository userRepository, IPersonService personService)
         {
             _coachRepository = coachRepository;
             _userRepository = userRepository;
+            _personService = personService;
             _logger = logger;
         }
 
@@ -53,5 +55,9 @@ namespace bc_handball_be.Core.Services
             }
         }
 
+        public async Task DeleteCoachAsync(int coachId)
+        {
+            await _coachRepository.DeleteCoachWithPersonAsync(coachId);
+        }
     }
 }

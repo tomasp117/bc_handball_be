@@ -15,11 +15,14 @@ namespace bc_handball_be.API.Controllers
         private readonly ILogger<ClubController> _logger;
         private readonly IClubService _clubService;
 
-        public ClubController(IMapper mapper, ILogger<ClubController> logger, IClubService clubService)
+        private readonly IWebHostEnvironment _env;
+
+        public ClubController(IMapper mapper, ILogger<ClubController> logger, IClubService clubService, IWebHostEnvironment env)
         {
             _mapper = mapper;
             _logger = logger;
             _clubService = clubService;
+            _env = env;
         }
 
         [Authorize(Roles = "Admin, ClubAdmin")]
@@ -85,6 +88,38 @@ namespace bc_handball_be.API.Controllers
         {
             var result = await _clubService.DeleteAsync(id);
             return result ? NoContent() : NotFound();
+        }
+
+        [HttpPost("{clubId}/upload-logo")]
+        public async Task<IActionResult> UploadLogo(int clubId, IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+            {
+                return BadRequest("No file uploaded.");
+            }
+
+            var permittedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
+            var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+
+            if (string.IsNullOrEmpty(extension) || !permittedExtensions.Contains(extension))
+            {
+                return BadRequest("Nepovolený typ souboru.");
+            }
+
+            var uploadsFolder = Path.Combine(_env.WebRootPath, "images");
+            Directory.CreateDirectory(uploadsFolder);
+
+            var fileName = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
+            var filePath = Path.Combine(uploadsFolder, fileName);
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            await _clubService.UpdateLogoAsync(clubId, fileName);
+
+            return Ok($"{fileName}");
         }
     }
 }

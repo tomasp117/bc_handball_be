@@ -61,5 +61,77 @@ namespace bc_handball_be.Infrastructure.Repositories
                 throw;
             }
         }
+
+        public async Task DeleteAsync(int coachId)
+        {
+            try
+            {
+                var coach = await _context.Coaches.FindAsync(coachId);
+                if (coach == null)
+                {
+                    _logger.LogWarning("Attempted to delete non-existing coach with ID {CoachId}", coachId);
+                    return;
+                }
+                _context.Coaches.Remove(coach);
+                await _context.SaveChangesAsync();
+                _logger.LogInformation("Coach with ID {CoachId} deleted successfully.", coachId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting coach with ID {CoachId}.", coachId);
+                throw;
+            }
+        }
+
+        public async Task DeleteCoachWithPersonAsync(int coachId)
+        {
+            var coach = await _context.Coaches
+                .Include(c => c.Person)
+                .ThenInclude(p => p.Login)
+                .FirstOrDefaultAsync(c => c.Id == coachId);
+
+            if (coach == null)
+                throw new KeyNotFoundException($"Coach with ID {coachId} not found.");
+
+            using var transaction = await _context.Database.BeginTransactionAsync();
+
+            try
+            {
+                if (coach.Person.Login != null)
+                    _context.Logins.Remove(coach.Person.Login);
+
+                _context.Persons.Remove(coach.Person);
+                await _context.SaveChangesAsync();
+
+                await transaction.CommitAsync();
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
+
+
+        public async Task<Coach> GetByIdAsync(int coachId)
+        {
+            try
+            {
+                var coach = await _context.Coaches
+                    .Include(c => c.Person)
+                    .FirstOrDefaultAsync(c => c.Id == coachId);
+                if (coach == null)
+                {
+                    _logger.LogWarning("Coach with ID {CoachId} not found.", coachId);
+                    throw new KeyNotFoundException($"Coach with ID {coachId} not found.");
+                }
+                return coach;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving coach with ID {CoachId}.", coachId);
+                throw;
+            }
+        }
     }
 }

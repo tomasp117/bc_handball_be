@@ -38,10 +38,15 @@ services:
       - mysql_db
     ports:
       - "5000:5000"
-      - "5001:5001"
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__DefaultConnection: "Server=mysql_db;Port=3306;Database=handball_is;User=user;Password=pcup_handball_is"
+    entrypoint: >
+      sh -c "
+      echo 'Waiting for MySQL...' &&
+      sleep 10 &&
+      dotnet bc_handball_be.API.dll
+      "
 
 volumes:
   mysql_data:

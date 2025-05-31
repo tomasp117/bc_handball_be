@@ -40,6 +40,19 @@ namespace bc_handball_be.API.Mapping
             CreateMap<PlaceholderTeamDTO, PlaceholderTeam>();
             CreateMap<PlaceholderTeam, PlaceholderTeamDTO>();
 
+            // Tohle stačí pro základní mapování
+            CreateMap<TeamCreateDTO, Team>()
+                .ForMember(dest => dest.Id, opt => opt.Ignore()) 
+                .ForMember(dest => dest.Players, opt => opt.Ignore()) 
+                .ForMember(dest => dest.Coach, opt => opt.Ignore())
+                .ForMember(dest => dest.Club, opt => opt.Ignore()) 
+                .ForMember(dest => dest.Category, opt => opt.Ignore())
+                .ForMember(dest => dest.TournamentInstance, opt => opt.Ignore())
+                .ForMember(dest => dest.TeamGroups, opt => opt.Ignore())
+                .ForMember(dest => dest.HomeMatches, opt => opt.Ignore())
+                .ForMember(dest => dest.AwayMatches, opt => opt.Ignore())
+                .ForMember(dest => dest.IsPlaceholder, opt => opt.Ignore());
+
 
             // Player
             CreateMap<Player, PlayerDTO>()

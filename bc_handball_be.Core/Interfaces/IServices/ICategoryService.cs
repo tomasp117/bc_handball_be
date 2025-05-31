@@ -15,5 +15,6 @@ namespace bc_handball_be.Core.Interfaces.IServices
         Task<Category> UpdateCategoryAsync(Category category);
         Task<bool> DeleteCategoryAsync(int id);
         Task<List<Category>> GetByTournamentInstanceIdAsync(int tournamentInstanceId);
+        Task<Category?> GetByNameAsync(string name, int tournamentInstanceId);
     }
 }

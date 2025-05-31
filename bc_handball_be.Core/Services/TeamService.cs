@@ -22,13 +22,13 @@ namespace bc_handball_be.Core.Services
             _logger = logger;
         }
 
-        public Task AddTeamAsync(Team team)
+        public async Task AddTeamAsync(Team team)
         {
-            throw new NotImplementedException();
+            await _teamRepository.AddTeamAsync(team);
         }
 
-        public async Task<IEnumerable<GroupAssignmentVariant>> AssignTeamsToGroupsAsync(
-            IEnumerable<TeamWithAttributes> teamsWithAttributes, int categoryId)
+        public async Task<List<GroupAssignmentVariant>> AssignTeamsToGroupsAsync(
+            List<TeamWithAttributes> teamsWithAttributes, int categoryId)
         {
             _logger.LogInformation("Starting team assignment for {TeamCount} teams", teamsWithAttributes.Count());
 
@@ -106,7 +106,7 @@ namespace bc_handball_be.Core.Services
 
 
 
-        private int CalculateTotalMatches(IEnumerable<Group> groups)
+        private int CalculateTotalMatches(List<Group> groups)
         {
             return groups.Sum(group => (group.TeamGroups.Count * (group.TeamGroups.Count - 1)) / 2);
         }
@@ -121,12 +121,12 @@ namespace bc_handball_be.Core.Services
             return await _teamRepository.GetTeamByIdAsync(id);
         }
 
-        public async Task<IEnumerable<Team>> GetTeamsAsync()
+        public async Task<List<Team>> GetTeamsAsync()
         {
             return await _teamRepository.GetTeamsAsync();
         }
 
-        public async Task<IEnumerable<Team>> GetTeamsByCategoryAsync(int categoryId)
+        public async Task<List<Team>> GetTeamsByCategoryAsync(int categoryId)
         {
             _logger.LogInformation("Fetching teams for categoryId: {CategoryId}", categoryId);
             try
@@ -152,20 +152,20 @@ namespace bc_handball_be.Core.Services
             throw new NotImplementedException();
         }
 
-        public async Task<IEnumerable<Team>> GetTeamsByIdAsync(IEnumerable<int> ids)
+        public async Task<List<Team>> GetTeamsByIdAsync(List<int> ids)
         {
             _logger.LogInformation("Fetching teams by IDs: {Ids}", string.Join(", ", ids));
 
             if (!ids.Any())
             {
                 _logger.LogWarning("No team IDs provided for fetching.");
-                return Enumerable.Empty<Team>();
+                return null;
             }
 
             try
             {
                 var teams = await _teamRepository.GetTeamsByIdAsync(ids);
-                return teams ?? Enumerable.Empty<Team>();
+                return teams ?? null;
             }
             catch (Exception ex)
             {
@@ -190,6 +190,42 @@ namespace bc_handball_be.Core.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error fetching teams for groupId: {GroupId}", groupId);
+                throw;
+            }
+        }
+
+        public async Task<List<Team>> GetTeamsByInstanceIdAsync(int instanceId)
+        {
+            _logger.LogInformation("Fetching teams for instanceId: {InstanceId}", instanceId);
+            try
+            {
+                var teams = await _teamRepository.GetTeamsAsync();
+
+                if (!teams.Any())
+                {
+                    _logger.LogWarning("No teams found for the given instance: {InstanceId}", instanceId);
+                }
+                teams = teams.Where(t => t.TournamentInstanceId == instanceId && (t.IsPlaceholder == false || t.IsPlaceholder == null)).ToList();
+                return teams;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching teams for instanceId: {InstanceId}", instanceId);
+                throw;
+            }
+        }
+
+        public async Task<bool> ExistsAsync(string teamName, int clubId, int tournamentInstanceId)
+        {
+            _logger.LogInformation("Checking if team exists: {TeamName}, ClubId: {ClubId}, InstanceId: {TournamentInstanceId}", teamName, clubId, tournamentInstanceId);
+            try
+            {
+                var teams = await _teamRepository.GetTeamsAsync();
+                return teams.Any(t => t.Name == teamName && t.ClubId == clubId && t.TournamentInstanceId == tournamentInstanceId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error checking if team exists: {TeamName}, ClubId: {ClubId}, InstanceId: {TournamentInstanceId}", teamName, clubId, tournamentInstanceId);
                 throw;
             }
         }

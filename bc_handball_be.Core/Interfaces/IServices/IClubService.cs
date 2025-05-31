@@ -16,5 +16,6 @@ namespace bc_handball_be.Core.Interfaces.IServices
         Task<bool> DeleteAsync(int id);
         Task<Club> GetPlaceholderClubAsync();
         Task UpdateLogoAsync(int clubId, string logoFileName);
+        Task<Club?> GetBySlugAsync(string clubName); // for slug-based retrieval and csv import
     }
 }

@@ -78,5 +78,11 @@ namespace bc_handball_be.Core.Services
             return categories.ToList();
         }
 
+        public async Task<Category?> GetByNameAsync(string name, int tournamentInstanceId)
+        {
+            var categories = await _categoryRepository.GetByTournamentInstanceIdAsync(tournamentInstanceId);
+            return categories.FirstOrDefault(c => c.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+        }
+
     }
 }

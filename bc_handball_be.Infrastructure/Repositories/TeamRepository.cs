@@ -50,12 +50,12 @@ namespace bc_handball_be.Infrastructure.Repositories
                 .FirstOrDefaultAsync(t => t.Id == id);
         }
 
-        public async Task<IEnumerable<Team>> GetTeamsAsync()
+        public async Task<List<Team>> GetTeamsAsync()
         {
             return await _context.Teams.Include(t => t.Category).ToListAsync();
         }
 
-        public async Task<IEnumerable<Team>> GetTeamsByCategoryAsync(int categoryId)
+        public async Task<List<Team>> GetTeamsByCategoryAsync(int categoryId)
         {
             _logger.LogInformation("Fetching teams for categoryId: {CategoryId}", categoryId);
             try
@@ -83,7 +83,7 @@ namespace bc_handball_be.Infrastructure.Repositories
                 .ToListAsync();
         }
 
-        public async Task<IEnumerable<Team>> GetTeamsByIdAsync(IEnumerable<int> ids)
+        public async Task<List<Team>> GetTeamsByIdAsync(List<int> ids)
         {
             _logger.LogInformation("Fetching teams by Ids: {Ids}", ids);
             try
@@ -113,5 +113,6 @@ namespace bc_handball_be.Infrastructure.Repositories
                 .Where(t => t.IsPlaceholder == true && t.CategoryId == categoryId)
                 .ToListAsync();
         }
+
     }
 }

@@ -89,5 +89,49 @@ namespace bc_handball_be.Core.Services
 
             _logger.LogInformation($"Logo for club {club.Name} updated successfully.");
         }
+
+        public async Task<Club?> GetBySlugAsync(string clubName)
+        {
+            var clubs = await _clubRepository.GetAllAsync();
+            var club = clubs.FirstOrDefault(c => ToSlug(c.Name) == clubName.ToLower());
+            if (club == null)
+            {
+                _logger.LogWarning($"Club with name {clubName} not found.");
+                return null;
+            }
+            return club;
+        }
+
+        private static string ToSlug(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input)) return string.Empty;
+
+            // Odstranění diakritiky
+            string normalized = input.Normalize(System.Text.NormalizationForm.FormD);
+            var sb = new System.Text.StringBuilder();
+            foreach (char c in normalized)
+            {
+                if (System.Globalization.CharUnicodeInfo.GetUnicodeCategory(c) != System.Globalization.UnicodeCategory.NonSpacingMark)
+                    sb.Append(c);
+            }
+            // Malá písmena, mezery na pomlčky, odstranění speciálních znaků
+            string slug = sb.ToString()
+                .ToLower()
+                .Replace(' ', '-')
+                .Replace("’", "")
+                .Replace("'", "")
+                .Replace("\"", "")
+                .Replace(",", "")
+                .Replace(".", "")
+                .Replace("–", "-")
+                .Replace("--", "-")
+                .Trim('-');
+
+            // Odstraní všechny znaky kromě a-z, 0-9 a '-'
+            slug = System.Text.RegularExpressions.Regex.Replace(slug, @"[^a-z0-9\-]", "");
+            slug = System.Text.RegularExpressions.Regex.Replace(slug, @"-+", "-"); // více pomlček na jednu
+
+            return slug;
+        }
     }
 }

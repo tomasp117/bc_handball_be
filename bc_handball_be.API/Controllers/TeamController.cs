@@ -3,31 +3,38 @@ using bc_handball_be.API.DTOs;
 using bc_handball_be.Core.Entities;
 using bc_handball_be.Core.Interfaces;
 using bc_handball_be.Core.Interfaces.IServices;
+using bc_handball_be.Core.Services;
 using bc_handball_be.Core.Services.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace bc_handball_be.API.Controllers
 {
-    [Route("api/teams")]
+    [Route("api/")]
     [ApiController]
     public class TeamController : ControllerBase
     {
         private readonly ITeamService _teamService;
         private readonly IMatchService _matchService;
+        private readonly IClubService _clubService;
+        private readonly ICategoryService _categoryService;
         private readonly ILogger<TeamController> _logger;
         private readonly IMapper _mapper;
 
-        public TeamController(ITeamService teamService,IMatchService matchService, ILogger<TeamController> logger, IMapper mapper)
+        public TeamController(ITeamService teamService, IMatchService matchService, ILogger<TeamController> logger, IMapper mapper, IClubService clubService, ICategoryService categoryService)
         {
             _teamService = teamService;
             _matchService = matchService;
+            _clubService = clubService;
+            _categoryService = categoryService;
             _logger = logger;
             _mapper = mapper;
+
         }
 
-        [HttpGet("group-assign")]
-        public async Task<ActionResult<IEnumerable<TeamGroupAssignDTO>>> GetTeamsByCategoryGroupAssign([FromQuery] int? category)
+        [HttpGet("teams/group-assign")]
+        public async Task<ActionResult<List<TeamGroupAssignDTO>>> GetTeamsByCategoryGroupAssign([FromQuery] int? category)
         {
             _logger.LogInformation("Fetching teams for categoryId: {CategoryId}", category);
             if (category == null)
@@ -44,7 +51,7 @@ namespace bc_handball_be.API.Controllers
                     return NotFound("No teams found for the given category");
                 }
 
-                var teamGroupAssignDTOs = _mapper.Map<IEnumerable<TeamGroupAssignDTO>>(teams);
+                var teamGroupAssignDTOs = _mapper.Map<List<TeamGroupAssignDTO>>(teams);
                 return Ok(teamGroupAssignDTOs);
             }
             catch (Exception ex)
@@ -54,8 +61,8 @@ namespace bc_handball_be.API.Controllers
             }
         }
 
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<TeamGroupAssignDTO>>> GetTeamsByCategory([FromQuery] int? category)
+        [HttpGet("teams")]
+        public async Task<ActionResult<List<TeamGroupAssignDTO>>> GetTeamsByCategory([FromQuery] int? category)
         {
             _logger.LogInformation("Fetching teams for categoryId: {CategoryId}", category);
             if (category == null)
@@ -72,7 +79,7 @@ namespace bc_handball_be.API.Controllers
                     return NotFound("No teams found for the given category");
                 }
 
-                var teamDTO = _mapper.Map<IEnumerable<TeamDTO>>(teams);
+                var teamDTO = _mapper.Map<List<TeamDTO>>(teams);
                 return Ok(teamDTO);
             }
             catch (Exception ex)
@@ -83,10 +90,10 @@ namespace bc_handball_be.API.Controllers
         }
 
         [Authorize(Roles = "Admin")]
-        [HttpPost("assign-groups")]
+        [HttpPost("teams/assign-groups")]
         public async Task<ActionResult> AssignTeamsToGroups(
-            [FromBody] IEnumerable<TeamGroupAssignDTO> teamDtos,
-            [FromQuery] int category)
+           [FromBody] List<TeamGroupAssignDTO> teamDtos,
+           [FromQuery] int category)
         {
             _logger.LogInformation("Assigning teams to groups");
 
@@ -98,7 +105,7 @@ namespace bc_handball_be.API.Controllers
 
             try
             {
-                var teamIds = teamDtos.Select(t => t.Id);
+                var teamIds = teamDtos.Select(t => t.Id).ToList();
                 var teams = await _teamService.GetTeamsByIdAsync(teamIds);
 
                 var enrichedTeams = teams.Select(team =>
@@ -113,7 +120,6 @@ namespace bc_handball_be.API.Controllers
 
                 var variants = await _teamService.AssignTeamsToGroupsAsync(enrichedTeams, category);
 
-                // 🟢 Namapujeme odpověď pro frontend
                 var response = variants.Select(variant => new
                 {
                     GroupCount = variant.GroupCount,
@@ -143,7 +149,7 @@ namespace bc_handball_be.API.Controllers
             }
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("teams/{id}")]
         public async Task<ActionResult<TeamDetailDTO>> GetTeamById(int id)
         {
             var team = await _teamService.GetTeamByIdAsync(id);
@@ -154,12 +160,115 @@ namespace bc_handball_be.API.Controllers
             return Ok(dto);
         }
 
-        [HttpGet("{id}/matches")]
-        public async Task<ActionResult<IEnumerable<MatchDTO>>> GetMatchesForTeam(int id)
+        [HttpGet("teams/{id}/matches")]
+        public async Task<ActionResult<List<MatchDTO>>> GetMatchesForTeam(int id)
         {
             var matches = await _matchService.GetMatchesByTeamIdAsync(id);
-            var matchDtos = _mapper.Map<IEnumerable<MatchDTO>>(matches);
+            var matchDtos = _mapper.Map<List<MatchDTO>>(matches);
             return Ok(matchDtos);
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPost("teams")]
+        public async Task<ActionResult<TeamDTO>> CreateTeam([FromBody] TeamCreateDTO teamDto)
+        {
+            if (teamDto == null)
+            {
+                _logger.LogWarning("Received null team DTO");
+                return BadRequest("Team data is required.");
+            }
+            var team = _mapper.Map<Team>(teamDto);
+            await _teamService.AddTeamAsync(team);
+            var createdDto = _mapper.Map<TeamDTO>(team);
+            return CreatedAtAction(nameof(GetTeamById), new { id = createdDto.Id }, createdDto);
+        }
+
+        [HttpGet("{instanceId}/teams")]
+        public async Task<ActionResult<List<TeamDTO>>> GetTeamsByEdition(int instanceId)
+        {
+            _logger.LogInformation("Fetching teams for editionId: {InstanceId}", instanceId);
+            var teams = await _teamService.GetTeamsByInstanceIdAsync(instanceId);
+            if (teams == null || !teams.Any())
+            {
+                _logger.LogWarning("No teams found for editionId: {InstanceId}", instanceId);
+                return NotFound();
+            }
+            var teamDtos = _mapper.Map<List<TeamDTO>>(teams);
+            return Ok(teamDtos);
+        }
+
+        [HttpDelete("teams/{id}")]
+        public async Task<ActionResult> DeleteTeam(int id)
+        {
+            _logger.LogInformation("Deleting team with id: {TeamId}", id);
+            var team = await _teamService.GetTeamByIdAsync(id);
+            if (team == null)
+            {
+                _logger.LogWarning("Team with id {TeamId} not found", id);
+                return NotFound();
+            }
+            await _teamService.DeleteTeamAsync(id);
+            _logger.LogInformation("Team with id {TeamId} deleted successfully", id);
+            return NoContent();
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPost("teams/import-csv")]
+        public async Task<ActionResult> ImportTeamsFromCsv([FromBody] List<TeamImportCsvDTO> teams)
+        {
+            _logger.LogInformation("Importing teams from CSV");
+            if (teams == null || !teams.Any())
+                return BadRequest("Teams are required for import");
+
+            int imported = 0, skipped = 0, failed = 0;
+            foreach (var dto in teams)
+            {
+                try
+                {
+                    // 1. Najdi klub (podle slugu)
+                    var club = await _clubService.GetBySlugAsync(dto.ClubName);
+                    if (club == null)
+                    {
+                        skipped++;
+                        continue;
+                    }
+
+                    // 2. Najdi kategorii podle názvu
+                    var category = await _categoryService.GetByNameAsync(dto.CategoryName, dto.TournamentInstanceId);
+                    if (category == null)
+                    {
+                        skipped++;
+                        continue;
+                    }
+
+                    // 3. Kontrola duplicity
+                    bool exists = await _teamService.ExistsAsync(dto.Name, club.Id, dto.TournamentInstanceId);
+                    if (exists)
+                    {
+                        skipped++;
+                        continue;
+                    }
+
+                    // 4. Sestav entitu
+                    var team = new Team
+                    {
+                        Name = dto.Name,
+                        ClubId = club.Id,
+                        CategoryId = category.Id,
+                        TournamentInstanceId = dto.TournamentInstanceId
+                    };
+
+                    // 5. Ulož
+                    await _teamService.AddTeamAsync(team);
+                    imported++;
+                }
+                catch
+                {
+                    failed++;
+                }
+            }
+            _logger.LogInformation("Import completed: {Imported} imported, {Skipped} skipped, {Failed} failed", imported, skipped, failed);
+            return Ok(new { Imported = imported, Skipped = skipped, Failed = failed });
         }
     }
 }

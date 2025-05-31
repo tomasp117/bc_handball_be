@@ -45,7 +45,7 @@ services:
     depends_on:
       - mysql_db
     ports:
-      - "5000:5000"
+      - "5000:8080"
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       ConnectionStrings__DefaultConnection: "Server=mysql_db;Port=3306;Database=handball_is;User=user;Password=pcup_handball_is"

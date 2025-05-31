@@ -47,7 +47,7 @@ services:
     ports:
       - "5000:5000"
     environment:
-      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_ENVIRONMENT: Production
       ConnectionStrings__DefaultConnection: "Server=mysql_db;Port=3306;Database=handball_is;User=user;Password=pcup_handball_is"
     entrypoint: >
       sh -c "

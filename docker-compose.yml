@@ -28,6 +28,14 @@ services:
       PMA_HOST: mysql_db
       MYSQL_ROOT_PASSWORD: pcup_handball_is
 
+  pcup_fe:
+    build:
+      context: ../pcup_fe 
+    container_name: pcup_fe
+    ports:
+      - "3000:80" 
+    restart: unless-stopped
+
   bc_handball_be:
     build:
       context: .
@@ -47,6 +55,7 @@ services:
       sleep 10 &&
       dotnet bc_handball_be.API.dll
       "
+  
 
 volumes:
   mysql_data:

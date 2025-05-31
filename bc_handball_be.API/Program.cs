@@ -140,10 +140,14 @@ app.UseStaticFiles();
 using (var scope = app.Services.CreateScope()){
     var services = scope.ServiceProvider;
     var context = services.GetRequiredService<ApplicationDbContext>();
-    if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
+    if (app.Environment.IsDevelopment())
     {
-        context.Database.Migrate(); // Aplikuje neprovedené migrace
+        context.Database.Migrate();
         SeedData.Initialize(context);
+    }
+    else
+    {
+        context.Database.Migrate();
     }
 }
 

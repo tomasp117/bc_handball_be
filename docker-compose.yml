@@ -30,7 +30,7 @@ services:
 
   pcup_fe:
     build:
-      context: ../pcup_fe 
+      context: ../pcup_fe/pcup_fe
     container_name: pcup_fe
     ports:
       - "3000:80" 

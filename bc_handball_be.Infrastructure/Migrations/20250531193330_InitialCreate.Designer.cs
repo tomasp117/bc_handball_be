@@ -12,8 +12,8 @@ using bc_handball_be.Infrastructure.Persistence;
 namespace bc_handball_be.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250525085054_GroupPhaseAttr")]
-    partial class GroupPhaseAttr
+    [Migration("20250531193330_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -272,6 +272,9 @@ namespace bc_handball_be.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
+                    b.Property<bool?>("IsPlaceholder")
+                        .HasColumnType("tinyint(1)");
+
                     b.Property<string>("Logo")
                         .IsRequired()
                         .HasColumnType("longtext");
@@ -456,6 +459,9 @@ namespace bc_handball_be.Infrastructure.Migrations
                     b.Property<int>("ClubId")
                         .HasColumnType("int");
 
+                    b.Property<bool?>("IsPlaceholder")
+                        .HasColumnType("tinyint(1)");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("longtext");
@@ -607,7 +613,7 @@ namespace bc_handball_be.Infrastructure.Migrations
                     b.HasOne("bc_handball_be.Core.Entities.Team", "Team")
                         .WithMany("Players")
                         .HasForeignKey("TeamId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Category");
 

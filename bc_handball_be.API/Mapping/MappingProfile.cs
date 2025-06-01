@@ -131,6 +131,23 @@ namespace bc_handball_be.API.Mapping
                         : src.Logo
                 ));
 
+            CreateMap<ClubAdmin, ClubAdminDTO>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
+                .ForMember(dest => dest.ClubId, opt => opt.MapFrom(src => src.ClubId))
+                .ForMember(dest => dest.Person, opt => opt.MapFrom(src => src.Person));
+
+            CreateMap<CreateClubAdminDTO, ClubAdmin>()
+                .ForMember(dest => dest.Person, opt => opt.MapFrom(src => src)); 
+            
+            CreateMap<CreateClubAdminDTO, Person>()
+                .ForMember(dest => dest.Login, opt => opt.MapFrom(src => new Login { Username = src.Username }))
+                .ForMember(dest => dest.FirstName, opt => opt.MapFrom(src => src.FirstName))
+                .ForMember(dest => dest.LastName, opt => opt.MapFrom(src => src.LastName))
+                .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email))
+                .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.PhoneNumber))
+                .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.Address))
+                .ForMember(dest => dest.DateOfBirth, opt => opt.MapFrom(src => src.DateOfBirth));
+
 
             // Event
             CreateMap<EventDTO, Event>();

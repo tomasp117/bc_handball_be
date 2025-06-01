@@ -2,6 +2,7 @@
 using bc_handball_be.API.DTOs;
 using bc_handball_be.Core.Entities;
 using bc_handball_be.Core.Interfaces.IServices;
+using bc_handball_be.Core.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -14,14 +15,16 @@ namespace bc_handball_be.API.Controllers
         private readonly IMapper _mapper;
         private readonly ILogger<ClubController> _logger;
         private readonly IClubService _clubService;
+        private readonly IClubAdminService _clubAdminService;
 
         private readonly IWebHostEnvironment _env;
 
-        public ClubController(IMapper mapper, ILogger<ClubController> logger, IClubService clubService, IWebHostEnvironment env)
+        public ClubController(IMapper mapper, ILogger<ClubController> logger, IClubService clubService, IWebHostEnvironment env, IClubAdminService clubAdminService)
         {
             _mapper = mapper;
             _logger = logger;
             _clubService = clubService;
+            _clubAdminService = clubAdminService;
             _env = env;
         }
 
@@ -120,6 +123,16 @@ namespace bc_handball_be.API.Controllers
             await _clubService.UpdateLogoAsync(clubId, fileName);
 
             return Ok($"{fileName}");
+        }
+
+        [HttpGet("{clubId}/admin")]
+        public async Task<ActionResult<ClubAdminDTO>> GetClubAdmin(int clubId)
+        {
+            var admin = await _clubAdminService.GetByClubIdAsync(clubId);
+            if (admin == null)
+                return NotFound();
+            var dto = _mapper.Map<ClubAdminDTO>(admin);
+            return Ok(dto);
         }
     }
 }

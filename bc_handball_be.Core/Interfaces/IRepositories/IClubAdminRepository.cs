@@ -11,5 +11,6 @@ namespace bc_handball_be.Core.Interfaces.IRepositories
     public interface IClubAdminRepository
     {
         Task<ClubAdmin> GetByPersonIdAsync(int personId);
+        Task<ClubAdmin> GetByClubIdAsync(int clubId);
     }
 }

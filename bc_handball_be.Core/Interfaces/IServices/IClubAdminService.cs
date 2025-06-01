@@ -11,5 +11,7 @@ namespace bc_handball_be.Core.Interfaces.IServices
     public interface IClubAdminService
     {
         Task<Club> GetClubByPersonIdAsync(int personId);
+        Task<ClubAdmin> GetByClubIdAsync(int clubId);
+        Task CreateAsync(ClubAdmin clubAdmin);
     }
 }

@@ -58,5 +58,27 @@ namespace bc_handball_be.Infrastructure.Repositories
                 return null;
             }
         }
+
+        public async Task<ClubAdmin> GetByClubIdAsync(int clubId)
+        {
+            try
+            {
+                var clubAdmin = await _context.ClubAdmins
+                    .Include(ca => ca.Person)
+                    .Include(ca => ca.Club)
+                    .FirstOrDefaultAsync(ca => ca.ClubId == clubId);
+                if (clubAdmin == null)
+                {
+                    _logger.LogWarning("ClubAdmin with ClubId {ClubId} not found", clubId);
+                    return null;
+                }
+                return clubAdmin;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving ClubAdmin with ClubId {ClubId}", clubId);
+                return null;
+            }
+        }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using bc_handball_be.API.DTOs;
+using bc_handball_be.Core.Entities.Actors.sub;
 using bc_handball_be.Core.Interfaces.IServices;
 using bc_handball_be.Core.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -38,8 +39,32 @@ namespace bc_handball_be.API.Controllers
             var clubDto = _mapper.Map<ClubDetailDTO>(club);
 
             return Ok(clubDto);
-
         }
 
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> CreateClubAdmin([FromBody] CreateClubAdminDTO dto)
+        {
+            try
+            {
+                var clubAdmin = _mapper.Map<ClubAdmin>(dto);
+
+                // DŮLEŽITÉ: Nastavit heslo hashovaně až teď!
+                clubAdmin.Person.Login.SetPassword(dto.Password);
+
+                await _clubAdminService.CreateAsync(clubAdmin);
+                return Ok(_mapper.Map<ClubAdminDTO>(clubAdmin));
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning(ex, "Username conflict when creating club admin.");
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Chyba při vytváření ClubAdmina.");
+                return StatusCode(500, "Něco se pokazilo při ukládání ClubAdmina.");
+            }
+        }
     }
 }

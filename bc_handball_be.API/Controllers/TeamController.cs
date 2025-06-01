@@ -230,6 +230,7 @@ namespace bc_handball_be.API.Controllers
                     if (club == null)
                     {
                         skipped++;
+                        _logger.LogWarning("Club not found for name: {ClubName}", dto.ClubName);
                         continue;
                     }
 
@@ -238,16 +239,18 @@ namespace bc_handball_be.API.Controllers
                     if (category == null)
                     {
                         skipped++;
+                        _logger.LogWarning("Category not found for name: {CategoryName} in instance {TournamentInstanceId}", dto.CategoryName, dto.TournamentInstanceId);
                         continue;
                     }
 
                     // 3. Kontrola duplicity
-                    bool exists = await _teamService.ExistsAsync(dto.Name, club.Id, dto.TournamentInstanceId);
-                    if (exists)
-                    {
-                        skipped++;
-                        continue;
-                    }
+                    //bool exists = await _teamService.ExistsAsync(dto.Name, club.Id, dto.TournamentInstanceId);
+                    //if (exists)
+                    //{
+                    //    skipped++;
+                    //    _logger.LogWarning("Team already exists: {TeamName} for club {ClubName} in instance {TournamentInstanceId}", dto.Name, dto.ClubName, dto.TournamentInstanceId);
+                    //    continue;
+                    //}
 
                     // 4. Sestav entitu
                     var team = new Team

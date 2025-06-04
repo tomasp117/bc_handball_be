@@ -195,7 +195,8 @@ namespace bc_handball_be.API.Mapping
                 .ForMember(dest => dest.State, opt => opt.MapFrom(src => src.State.ToString()))
                 .ForMember(dest => dest.HomeTeam, opt => opt.MapFrom(src => src.HomeTeam))
                 .ForMember(dest => dest.AwayTeam, opt => opt.MapFrom(src => src.AwayTeam))
-                .ForMember(dest => dest.Group, opt => opt.MapFrom(src => src.Group));
+                .ForMember(dest => dest.Group, opt => opt.MapFrom(src => src.Group))
+                .ForMember(dest => dest.Lineups, opt => opt.MapFrom(src => src.Lineups));
 
 
             CreateMap<Match, MatchDetailDTO>()
@@ -221,6 +222,10 @@ namespace bc_handball_be.API.Mapping
 
             CreateMap<MatchUpdateDTO, Match>()
                 .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+
+            // Lineup
+            CreateMap<Lineup, LineupDTO>();
+            CreateMap<LineupPlayer, LineupPlayerDTO>();
 
             // Tournament
             CreateMap<Tournament, TournamentDTO>();

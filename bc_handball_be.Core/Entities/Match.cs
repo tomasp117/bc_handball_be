@@ -29,6 +29,8 @@ namespace bc_handball_be.Core.Entities
         public ICollection<Event> Events { get; set; } = new List<Event>();
         public Category? Category { get; set; } = null!;
 
+        public ICollection<Lineup> Lineups { get; set; } = new List<Lineup>();
+
         // Foreign keys
         // Teams
         public int? HomeTeamId { get; set; }

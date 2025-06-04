@@ -20,13 +20,15 @@ namespace bc_handball_be.API.Controllers
         private readonly ILogger<MatchController> _logger;
         private readonly IMatchService _matchService;
         private readonly ICategoryService _categoryService;
+        private readonly ILineupService _lineupService;
 
-        public MatchController(IMapper mapper, ILogger<MatchController> logger, IMatchService matchService, ICategoryService categoryService)
+        public MatchController(IMapper mapper, ILogger<MatchController> logger, IMatchService matchService, ICategoryService categoryService, ILineupService lineupService)
         {
             _mapper = mapper;
             _logger = logger;
             _matchService = matchService;
             _categoryService = categoryService;
+            _lineupService = lineupService;
         }
 
         [Authorize(Roles = "Admin")]
@@ -130,6 +132,23 @@ namespace bc_handball_be.API.Controllers
 
             var matchDtos = _mapper.Map<List<MatchDTO>>(matches);
             return Ok(matchDtos);
+        }
+
+        [HttpPost("matches/{matchId}/generate-lineups")]
+        [Authorize(Roles = "Admin, Recorder")] 
+        public async Task<IActionResult> GenerateLineups(int matchId)
+        {
+            try
+            {
+                _logger.LogDebug("Generating lineups for match with ID {matchId}", matchId);
+                await _lineupService.GenerateLineupsForMatchAsync(matchId);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Chyba při generování soupisky pro zápas {matchId}", matchId);
+                return StatusCode(500, "Chyba při generování soupisky.");
+            }
         }
     }
 }

@@ -33,6 +33,14 @@ namespace bc_handball_be.Core.Services
 
         public async Task SaveGroupsAsync(IEnumerable<Group> newGroups, int categoryId)
         {
+
+            var areExisting = await _groupRepository.GetGroupsByCategoryAsync(categoryId);
+            if (areExisting.Any())
+            {
+                await _groupRepository.DeleteGroupsAsync(categoryId);
+                _logger.LogWarning("Groups already exist for category {CategoryId}. This will overwrite existing groups.", categoryId);
+            }
+
             var validGroups = newGroups.Where(g => g.TeamGroups.Any()).ToList();
             if (!validGroups.Any())
             {

@@ -65,8 +65,10 @@ namespace bc_handball_be.API.Controllers
                 _logger.LogInformation("Saving {Count} new groups for category {CategoryId}", validGroups.Count, category);
                 await _groupService.SaveGroupsAsync(validGroups, category);
 
+                var groupDTOs = _mapper.Map<List<GroupDetailDTO>>(validGroups);
+
                 _logger.LogInformation("Groups for category {CategoryId} saved successfully", category);
-                return Ok(groups);
+                return Ok(groupDTOs);
             }
             catch (Exception ex)
             {

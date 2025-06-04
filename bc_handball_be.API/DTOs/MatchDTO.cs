@@ -17,5 +17,7 @@
         public int? AwayTeamId { get; set; }
         public GroupDTO Group { get; set; } = null!;
         public int? GroupId { get; set; }
+
+        public List<LineupDTO>? Lineups { get; set; } = new List<LineupDTO>();
     }
 }

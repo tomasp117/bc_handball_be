@@ -117,6 +117,8 @@ builder.Services.AddScoped<ITournamentInstanceRepository, TournamentInstanceRepo
 builder.Services.AddScoped<ITournamentInstanceService, TournamentInstanceService>();
 builder.Services.AddScoped<IClubAdminRepository, ClubAdminRepository>();
 builder.Services.AddScoped<IClubAdminService, ClubAdminService>();
+builder.Services.AddScoped<ILineupRepository, LineupRepository>();
+builder.Services.AddScoped<ILineupService, LineupService>();
 
 
 var app = builder.Build();

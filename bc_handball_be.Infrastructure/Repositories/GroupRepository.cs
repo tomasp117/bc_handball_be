@@ -142,5 +142,23 @@ namespace bc_handball_be.Infrastructure.Repositories
             return groups;
         }
 
+        public async Task DeleteGroupsAsync(int categoryId)
+        {
+            _logger.LogInformation("Deleting groups for category {CategoryId}", categoryId);
+            var groups = await _context.Groups
+                .Where(g => g.CategoryId == categoryId)
+                .ToListAsync();
+            if (groups.Any())
+            {
+                _context.Groups.RemoveRange(groups);
+                await _context.SaveChangesAsync();
+                _logger.LogInformation("Deleted {Count} groups for category {CategoryId}", groups.Count, categoryId);
+            }
+            else
+            {
+                _logger.LogWarning("No groups found to delete for category {CategoryId}", categoryId);
+            }
+        }
+
     }
 }

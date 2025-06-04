@@ -15,6 +15,9 @@ namespace bc_handball_be.Core.Entities.Actors.sub
         public int RedCardCount { get; set; } = 0;
         public int YellowCardCount { get; set; } = 0;
 
+        // Navigation properties
+        public ICollection<LineupPlayer> LineupPlayers { get; set; } = new List<LineupPlayer>();
+
         // Foreign keys
         public int? TeamId { get; set; }
         public Team? Team { get; set; }

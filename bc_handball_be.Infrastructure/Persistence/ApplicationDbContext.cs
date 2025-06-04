@@ -28,6 +28,8 @@ namespace bc_handball_be.Infrastructure.Persistence
         public DbSet<Login> Logins { get; set; }
         public DbSet<ClubAdmin> ClubAdmins { get; set; }
         public DbSet<TeamGroup> TeamGroups { get; set; }
+        public DbSet<Lineup> Lineups { get; set; }
+        public DbSet<LineupPlayer> LineupPlayers { get; set; }
 
 
         override protected void OnModelCreating(ModelBuilder modelBuilder)
@@ -51,6 +53,8 @@ namespace bc_handball_be.Infrastructure.Persistence
             modelBuilder.Entity<Referee>().ToTable("Referee");
             modelBuilder.Entity<Login>().ToTable("Login");
             modelBuilder.Entity<ClubAdmin>().ToTable("ClubAdmin");
+            modelBuilder.Entity<Lineup>().ToTable("Lineup");
+            modelBuilder.Entity<LineupPlayer>().ToTable("LineupPlayer");
 
             // 1:N Tournament - TournamentInstance
             modelBuilder.Entity<Tournament>()
@@ -222,6 +226,35 @@ namespace bc_handball_be.Infrastructure.Persistence
                 .WithMany(r => r.AssistantRefereeMatches)
                 .HasForeignKey(m => m.AssistantRefereeId)
                 .OnDelete(DeleteBehavior.SetNull);
+
+            // 1:N Match - Lineup
+            modelBuilder.Entity<Match>()
+                .HasMany(m => m.Lineups)
+                .WithOne(l => l.Match)
+                .HasForeignKey(l => l.MatchId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // 1:N Lineup - LineupPlayer
+            modelBuilder.Entity<Lineup>()
+                .HasMany(l => l.Players)
+                .WithOne(lp => lp.Lineup)
+                .HasForeignKey(lp => lp.LineupId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // 1:N Team - Lineup
+            modelBuilder.Entity<Team>()
+                .HasMany(t => t.Lineups)
+                .WithOne(l => l.Team)
+                .HasForeignKey(l => l.TeamId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // 1:N Player - LineupPlayer
+            modelBuilder.Entity<Player>()
+                .HasMany(p => p.LineupPlayers)
+                .WithOne(lp => lp.Player)
+                .HasForeignKey(lp => lp.PlayerId)
+                .OnDelete(DeleteBehavior.Restrict);
+
 
             // TPT inheritance
             //modelBuilder.Entity<Person>().ToTable("Person");

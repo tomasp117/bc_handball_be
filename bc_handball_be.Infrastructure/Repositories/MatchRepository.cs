@@ -76,6 +76,10 @@ namespace bc_handball_be.Infrastructure.Repositories
                         .ThenInclude(p => p.Person)
                 .Include(m => m.Group)
                 .Include(m => m.Events)
+                .Include(m => m.Lineups)
+                    .ThenInclude(l => l.Players)
+                        .ThenInclude(p => p.Player)
+                            .ThenInclude(p => p.Person)
                 .FirstOrDefaultAsync(m => m.Id == id);
         }
 
@@ -91,6 +95,10 @@ namespace bc_handball_be.Infrastructure.Repositories
                         .ThenInclude(p => p.Person)
                 .Include(m => m.Group)
                     .ThenInclude(g => g.Category)
+                .Include(m => m.Lineups)
+                    .ThenInclude(l => l.Players)
+                        .ThenInclude(p => p.Player)
+                            .ThenInclude(p => p.Person)
                 .ToListAsync();
         }
 
@@ -131,6 +139,10 @@ namespace bc_handball_be.Infrastructure.Repositories
                 .Include(m => m.AwayTeam)
                     .ThenInclude(t => t.Players)
                         .ThenInclude(p => p.Person)
+                .Include(m => m.Lineups)
+                    .ThenInclude(l => l.Players)
+                        .ThenInclude(p => p.Player)
+                            .ThenInclude(p => p.Person)
                 .Where(m => m.Group.Category.Id == categoryId)
                 .ToListAsync();
         }
@@ -145,6 +157,10 @@ namespace bc_handball_be.Infrastructure.Repositories
                 .Include(m => m.AwayTeam)
                     .ThenInclude(t => t.Players)
                         .ThenInclude(p => p.Person)
+                .Include(m => m.Lineups)
+                    .ThenInclude(l => l.Players)
+                        .ThenInclude(p => p.Player)
+                            .ThenInclude(p => p.Person)
                 .Where(m => m.GroupId == groupId)
                 .ToListAsync();
         }
@@ -159,6 +175,10 @@ namespace bc_handball_be.Infrastructure.Repositories
                 .Include(m => m.AwayTeam)
                     .ThenInclude(t => t.Players)
                         .ThenInclude(p => p.Person)
+                .Include(m => m.Lineups)
+                    .ThenInclude(l => l.Players)
+                        .ThenInclude(p => p.Player)
+                            .ThenInclude(p => p.Person)
                 .Where(m => m.HomeTeamId == teamId || m.AwayTeamId == teamId)
                 .ToListAsync();
         }

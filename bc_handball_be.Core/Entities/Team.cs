@@ -32,5 +32,7 @@ namespace bc_handball_be.Core.Entities
 
         public ICollection<Match> HomeMatches { get; set; } = new List<Match>();
         public ICollection<Match> AwayMatches { get; set; } = new List<Match>();
+
+        public ICollection<Lineup> Lineups { get; set; } = new List<Lineup>();
     }
 }

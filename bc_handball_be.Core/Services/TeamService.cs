@@ -56,34 +56,36 @@ namespace bc_handball_be.Core.Services
         {
             var sortedTeams = teams.OrderByDescending(t => t.Strength).ToList();
 
+            // ID začínají na 1!
             var groups = Enumerable.Range(1, groupCount)
-                .Select(i => new Group { Id = i - 1, Name = $"{Convert.ToChar('A' + i - 1)}", TeamGroups = new List<TeamGroup>() })
+                .Select(i => new Group { Id = i, Name = $"{Convert.ToChar('A' + i - 1)}", TeamGroups = new List<TeamGroup>() })
                 .ToList();
+
+            // Nejprve přiřadit dívčí týmy
+            var girlsTeams = sortedTeams.Where(t => t.IsGirls).ToList();
+            var otherTeams = sortedTeams.Where(t => !t.IsGirls).ToList();
+
+            for (int i = 0; i < girlsTeams.Count && i < groupCount; i++)
+            {
+                groups[i].TeamGroups.Add(new TeamGroup
+                {
+                    TeamId = girlsTeams[i].Team.Id,
+                    Team = girlsTeams[i].Team,
+                    Group = groups[i]
+                });
+            }
+
+            var assignedGirlsIds = girlsTeams.Take(groupCount).Select(t => t.Team.Id).ToHashSet();
+            var remainingTeams = otherTeams.Concat(girlsTeams.Skip(groupCount)).ToList();
 
             int direction = 1;
             int groupIndex = 0;
 
-            foreach (var teamData in sortedTeams)
+            groupIndex = girlsTeams.Count % groupCount;
+            direction = 1;
+
+            foreach (var teamData in remainingTeams)
             {
-                if (teamData.IsGirls)
-                {
-                    var availableGroups = groups.Where(g => !g.TeamGroups.Any(tg =>
-                        teams.FirstOrDefault(attr => attr.Team.Id == tg.TeamId)?.IsGirls == true))
-                        .ToList();
-
-                    if (availableGroups.Any())
-                    {
-                        var selectedGroup = availableGroups.OrderBy(g => g.TeamGroups.Count).First();
-                        selectedGroup.TeamGroups.Add(new TeamGroup
-                        {
-                            TeamId = teamData.Team.Id,
-                            Team = teamData.Team,
-                            Group = selectedGroup
-                        });
-                        continue;
-                    }
-                }
-
                 var currentGroup = groups[groupIndex];
                 currentGroup.TeamGroups.Add(new TeamGroup
                 {
@@ -93,7 +95,6 @@ namespace bc_handball_be.Core.Services
                 });
 
                 groupIndex += direction;
-
                 if (groupIndex == groupCount || groupIndex == -1)
                 {
                     direction *= -1;

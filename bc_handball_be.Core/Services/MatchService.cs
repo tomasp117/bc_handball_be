@@ -418,7 +418,9 @@ namespace bc_handball_be.Core.Services
                 {
                     new CourtRule { Court = "Hřiště 3 Umělá tráva" },
                     new CourtRule { Court = "Hřiště 4 Umělá tráva" },
-                    new CourtRule { Court = "Hřiště 5 Tartan Dělnický dům", AllowedDays = new() { DayOfWeek.Saturday } },
+                    new CourtRule { Court = "Hřiště 5 Tartan Dělnický dům" },
+                    new CourtRule { Court = "Hřiště 6 Beton Dělnický dům" }
+                    
                 };
             }
 
@@ -426,10 +428,10 @@ namespace bc_handball_be.Core.Services
             {
                 _categoryCourtRules[mladsiZaci.Id] = new List<CourtRule>
                 {
-                    new CourtRule { Court = "Hřiště 5 Tartan Dělnický dům", IsPrimary = true },
-                    new CourtRule { Court = "Hřiště 6 Beton Dělnický dům", IsPrimary = true },
                     new CourtRule { Court = "Hřiště 1 Tartan" },
                     new CourtRule { Court = "Hřiště 2 Tartan" },
+                    new CourtRule { Court = "Hřiště 5 Tartan Dělnický dům"},
+                    new CourtRule { Court = "Hřiště 6 Beton Dělnický dům" },
                     new CourtRule { Court = "Hřiště 3 Umělá tráva" },
                     new CourtRule { Court = "Hřiště 4 Umělá tráva" },
                 };
@@ -439,8 +441,9 @@ namespace bc_handball_be.Core.Services
             {
                 _categoryCourtRules[starsiZaci.Id] = new List<CourtRule>
                 {
-                    new CourtRule { Court = "Hřiště 1 Tartan" },
-                    new CourtRule { Court = "Hřiště 2 Tartan" },
+                    new CourtRule { Court = "Hřiště 1 Tartan", IsPrimary = true },
+                    new CourtRule { Court = "Hřiště 2 Tartan", IsPrimary = true },
+                    new CourtRule { Court = "Hala"}
                 };
             }
 
@@ -449,8 +452,8 @@ namespace bc_handball_be.Core.Services
                 _categoryCourtRules[mladsiDorost.Id] = new List<CourtRule>
                 {
                     new CourtRule { Court = "Hala", IsPrimary = true},
-                    new CourtRule { Court = "Hřiště 1 Tartan", AllowedDays = new() { DayOfWeek.Saturday, DayOfWeek.Sunday } },
-                    new CourtRule { Court = "Hřiště 2 Tartan", AllowedDays = new() { DayOfWeek.Saturday, DayOfWeek.Sunday } },
+                    //new CourtRule { Court = "Hřiště 1 Tartan", AllowedDays = new() { DayOfWeek.Saturday, DayOfWeek.Sunday } },
+                    //new CourtRule { Court = "Hřiště 2 Tartan", AllowedDays = new() { DayOfWeek.Saturday, DayOfWeek.Sunday } },
                 };
             }
 
@@ -562,132 +565,118 @@ namespace bc_handball_be.Core.Services
 
         public async Task<List<Match>> AssignAllGroupMatchesFromScratch(int edition)
         {
+            // 1) Inicializace court rules
             if (_categoryCourtRules.Count == 0)
                 await InitCategoryCourtRules(edition);
 
-            var categories = await _categoryService.GetCategoriesAsync(edition);
-            var teams = await _teamService.GetTeamsAsync();
-            var groups = await _groupService.GetGroupsAsync();
-            _logger.LogInformation("Groups: {groups}", string.Join(", ", groups.Select(g => g.Name)));
-
-            var mini41 = categories.FirstOrDefault(c => c.Name == "Mini 4+1");
-            var preferredDaysOrder = new List<DayOfWeek> { DayOfWeek.Friday, DayOfWeek.Saturday, DayOfWeek.Sunday };
-
-            var blankMatches = (await _matchRepository.GetMatchesByStateAsync(MatchState.Generated))
-                .Where(m => m.Category?.Name != mini41?.Name)
-                .OrderBy(m => preferredDaysOrder.IndexOf(m.Time.DayOfWeek))
-                .ThenByDescending(m =>
+            // 2) Pořadí kategorií
+            var preferredCategoryNames = new[] { "Mladší dorostenci", "Starší žáci", "Mladší žáci", "Mini 6+1" };
+            var allCategories = await _categoryService.GetCategoriesAsync(edition);
+            var categories = allCategories
+                .OrderBy(c =>
                 {
-                    if (m.Category == null || !_categoryCourtRules.TryGetValue(m.Category.Id, out var rules))
-                        return false;
-
-                    return rules.Any(r => r.Court == m.Playground && r.IsPrimary);
+                    var idx = Array.IndexOf(preferredCategoryNames, c.Name);
+                    return idx >= 0 ? idx : int.MaxValue;
                 })
-                .ThenBy(m => m.Time)
                 .ToList();
 
-            _logger.LogInformation("Počet dostupných slotů: {count}", blankMatches.Count);
+            // 3) Načteme všechny sloty jednou
+            var allSlots = await _matchRepository.GetMatchesByStateAsync(MatchState.Generated);
 
-            var lastMatchTimeForTeam = new Dictionary<int, DateTime>();
-            var occupiedSlots = new HashSet<int>();
+            // 4) Načteme týmy a skupiny
+            var teams = await _teamService.GetTeamsAsync();
+            var groups = await _groupService.GetGroupsAsync();
+
+            var preferredDays = new List<DayOfWeek> { DayOfWeek.Friday, DayOfWeek.Saturday, DayOfWeek.Sunday };
             var assignedMatches = new List<Match>();
+            var lastMatchTime = new Dictionary<int, DateTime>();
+            var occupiedSlots = new HashSet<int>();
 
+            // 5) Projdeme kategorie pořadově
             foreach (var category in categories)
             {
-                if (mini41 != null && category.Id == mini41.Id)
-                    continue;
+                // třeba přeskočit Mini 4+1 pokud nechcete
+                if (category.Name == "Mini 4+1") continue;
+                if (!_categoryCourtRules.ContainsKey(category.Id)) continue;
 
-                if (!_categoryCourtRules.ContainsKey(category.Id))
+                // 6) Vybereme si jen ty sloty, které court-rules dovolí pro tuto kategorii
+                var categorySlots = allSlots
+                    .Where(s =>
+                        CourtAllowedForCategory(category.Id, s.Playground, s.Time.DayOfWeek)
+                        && !occupiedSlots.Contains(s.Id))
+                    .OrderBy(s => preferredDays.IndexOf(s.Time.DayOfWeek))
+                    .ThenByDescending(s =>
+                        _categoryCourtRules[category.Id]
+                           .FirstOrDefault(r => r.Court == s.Playground)?.IsPrimary ?? false)
+                    .ThenBy(s => s.Time.TimeOfDay)
+                    .ToList();
+
+                // fallback, pokud žádné court-allowed sloty
+                if (!categorySlots.Any())
                 {
-                    _logger.LogWarning("Kategorie {id} nemá pravidla hřišť. Přeskakuji.", category.Id);
-                    continue;
+                    categorySlots = allSlots
+                        .Where(s => !occupiedSlots.Contains(s.Id))
+                        .OrderBy(s => preferredDays.IndexOf(s.Time.DayOfWeek))
+                        .ThenBy(s => s.Time.TimeOfDay)
+                        .ToList();
                 }
 
                 var categoryTeams = teams.Where(t => t.CategoryId == category.Id).ToList();
                 var categoryGroups = groups.Where(g => g.CategoryId == category.Id).ToList();
 
-                _logger.LogInformation("Kategorie {id} ({name}) - Počet týmů: {count}", category.Id, category.Name, categoryTeams.Count);
-                _logger.LogInformation("Počet skupin: {count}", categoryGroups.Count);
-
                 foreach (var group in categoryGroups)
                 {
-                    var groupTeams = categoryTeams.Where(t => t.TeamGroups.Any(tg => tg.GroupId == group.Id)).ToList();
-                    var groupMatches = GetTeamPairsInGroup(groupTeams);
+                    var groupTeams = categoryTeams
+                        .Where(t => t.TeamGroups.Any(tg => tg.GroupId == group.Id))
+                        .ToList();
 
-                    _logger.LogInformation("Skupina {id} ({name}) - Počet týmů: {count}", group.Id, group.Name, groupTeams.Count);
-
-                    foreach (var (homeId, awayId) in groupMatches)
+                    foreach (var (homeId, awayId) in GetTeamPairsInGroup(groupTeams))
                     {
-                        bool matchAssigned = false;
+                        // 7) Hledáme slot dle rest + lunch
+                        Match chosen = categorySlots.FirstOrDefault(s =>
+                            HasEnoughRest(lastMatchTime, homeId, s.Time)
+                            && HadEnoughLunchBreak(homeId, s.Time, assignedMatches)
+                            && HasEnoughRest(lastMatchTime, awayId, s.Time)
+                            && HadEnoughLunchBreak(awayId, s.Time, assignedMatches)
+                        );
 
-                        foreach (var slot in blankMatches.Where(s =>
-                                 !occupiedSlots.Contains(s.Id) &&
-                                 CourtAllowedForCategory(category.Id, s.Playground, s.Time.DayOfWeek)))
+                        // 8) Fallback na courier + rest
+                        if (chosen == null)
                         {
-                            _logger.LogInformation("Zápas {home}-{away} v kategorii {cat} na hřišti {court} v čase {time}.", homeId, awayId, category.Name, slot.Playground, slot.Time);
-                            if (!CourtAllowedForCategory(category.Id, slot.Playground, slot.Time.DayOfWeek))
-                            {
-                                _logger.LogDebug("Slot {slotId} zamítnut kvůli pravidlům hřišť", slot.Id);
-                                continue;
-                            }
-
-                            if (!HasEnoughRest(lastMatchTimeForTeam, homeId, slot.Time))
-                            {
-                                _logger.LogDebug("Tým {id} nemá dost odpočinku (domácí)", homeId);
-                                continue;
-                            }
-
-                            if (!HasEnoughRest(lastMatchTimeForTeam, awayId, slot.Time))
-                            {
-                                _logger.LogDebug("Tým {id} nemá dost odpočinku (host)", awayId);
-                                continue;
-                            }
-
-                            if (!HadEnoughLunchBreak(homeId, slot.Time, assignedMatches))
-                            {
-                                _logger.LogDebug("Tým {id} nemá dost pauzy po obědě (domácí)", homeId);
-                                continue;
-                            }
-
-                            if (!HadEnoughLunchBreak(awayId, slot.Time, assignedMatches))
-                            {
-                                _logger.LogDebug("Tým {id} nemá dost pauzy po obědě (host)", awayId);
-                                continue;
-                            }
-
-                            bool canHomePlay = HasEnoughRest(lastMatchTimeForTeam, homeId, slot.Time) &&
-                                               HadEnoughLunchBreak(homeId, slot.Time, assignedMatches);
-
-                            bool canAwayPlay = HasEnoughRest(lastMatchTimeForTeam, awayId, slot.Time) &&
-                                               HadEnoughLunchBreak(awayId, slot.Time, assignedMatches);
-
-                            if (canHomePlay && canAwayPlay)
-                            {
-                                slot.HomeTeamId = homeId;
-                                slot.AwayTeamId = awayId;
-                                slot.GroupId = group.Id;
-                                slot.Category = group.Category;
-                                slot.State = MatchState.None;
-
-                                await _matchRepository.UpdateMatchAsync(slot);
-
-                                _logger.LogInformation("Přiřazen zápas {home}-{away} v kategorii {cat} na hřišti {court} v čase {time}.", homeId, awayId, category.Name, slot.Playground, slot.Time);
-
-                                lastMatchTimeForTeam[homeId] = slot.Time;
-                                lastMatchTimeForTeam[awayId] = slot.Time;
-
-                                occupiedSlots.Add(slot.Id);
-                                assignedMatches.Add(slot);
-                                matchAssigned = true;
-
-
-                                break;
-                            }
+                            chosen = categorySlots.FirstOrDefault(s =>
+                                HasEnoughRest(lastMatchTime, homeId, s.Time)
+                                && HasEnoughRest(lastMatchTime, awayId, s.Time)
+                            );
                         }
 
-                        if (!matchAssigned)
+                        // 9) Konečný fallback na cokoliv
+                        if (chosen == null)
                         {
-                            //_logger.LogWarning("Žádný vhodný slot nenalezen pro zápas {home}-{away} v kategorii {cat}.", homeId, awayId, category.Name);
+                            chosen = categorySlots.FirstOrDefault();
+                        }
+
+                        if (chosen != null)
+                        {
+                            // přiřazení
+                            chosen.HomeTeamId = homeId;
+                            chosen.AwayTeamId = awayId;
+                            chosen.GroupId = group.Id;
+                            chosen.State = MatchState.None;
+                            await _matchRepository.UpdateMatchAsync(chosen);
+
+                            lastMatchTime[homeId] = chosen.Time;
+                            lastMatchTime[awayId] = chosen.Time;
+                            occupiedSlots.Add(chosen.Id);
+                            assignedMatches.Add(chosen);
+
+                            // odstraníme ho z poolu
+                            categorySlots.Remove(chosen);
+                        }
+                        else
+                        {
+                            _logger.LogWarning(
+                                "Kategorie {cat}: nenalezen žádný slot ani po všech fallbackech pro zápas {h}-{a}",
+                                category.Name, homeId, awayId);
                         }
                     }
                 }

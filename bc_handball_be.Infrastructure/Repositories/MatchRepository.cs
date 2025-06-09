@@ -182,5 +182,20 @@ namespace bc_handball_be.Infrastructure.Repositories
                 .Where(m => m.HomeTeamId == teamId || m.AwayTeamId == teamId)
                 .ToListAsync();
         }
+
+        public async Task DeleteMatchAsync(int matchId)
+        {
+            _logger.LogInformation("Deleting match with ID {matchId}", matchId);
+            var match = await _context.Matches.FindAsync(matchId);
+            if (match != null)
+            {
+                _context.Matches.Remove(match);
+                await _context.SaveChangesAsync();
+            }
+            else
+            {
+                _logger.LogWarning("Match with ID {matchId} not found for deletion", matchId);
+            }
+        }
     }
 }

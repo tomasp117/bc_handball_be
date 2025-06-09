@@ -225,23 +225,102 @@ namespace bc_handball_be.Core.Services
             }
         }*/
 
+        //public async Task<List<Match>> GenBlankMatches(int edition)
+        //{
+        //    var matches = new List<Match>();
+        //    var slots = GenerateMatchSlots().OrderBy(x => x.Time).ToList();
+
+        //    var categories = await _categoryService.GetCategoriesAsync(edition);
+
+        //    categories = categories
+        //        .Where(c => c.Name != "Mini 4+1") 
+        //        .OrderBy(c => c.Name)
+        //        .ToList();
+
+        //    int sumOfMatches = 0;
+        //    foreach (var category in categories)
+        //    {
+        //        sumOfMatches += await GetNumOfMatches(category.Id);
+        //    }
+
+        //    for (int i = 0; i < sumOfMatches && i < slots.Count; i++)
+        //    {
+        //        var slot = slots[i];
+        //        matches.Add(new Match
+        //        {
+        //            Time = slot.Time,
+        //            TimePlayed = "00:00",
+        //            Playground = slot.Court,
+        //            HomeScore = 0,
+        //            AwayScore = 0,
+        //            State = MatchState.Generated
+        //        });
+        //    }
+
+        //    await _matchRepository.AddMatchesAsync(matches);
+
+        //    return matches;
+        //}
+
         public async Task<List<Match>> GenBlankMatches(int edition)
         {
-            var matches = new List<Match>();
-            var slots = GenerateMatchSlots().OrderBy(x => x.Time).ToList();
-
+            // 1) Spočítat celkový počet zápasů
             var categories = await _categoryService.GetCategoriesAsync(edition);
+            categories = categories
+                .Where(c => c.Name != "Mini 4+1")
+                .OrderBy(c => c.Name)
+                .ToList();
 
             int sumOfMatches = 0;
-            foreach (var category in categories)
+            foreach (var c in categories)
             {
-                sumOfMatches += await GetNumOfMatches(category.Id);
+                sumOfMatches += await GetNumOfMatches(c.Id);
             }
 
-            for (int i = 0; i < sumOfMatches && i < slots.Count; i++)
+            const int finalsCount = 8;
+            int groupMatchCount = Math.Max(sumOfMatches - finalsCount, 0);
+
+            // 2) Vygenerovat a seřadit všechny sloty
+            var allSlots = GenerateMatchSlots()
+                .OrderBy(s => s.Time)
+                .ToList();
+
+            // 3) Vybrat přesně 8 finálových slotů: musí být neděle a court == "Hala"
+            var finalSlots = allSlots
+                .Where(s => s.Time.DayOfWeek == DayOfWeek.Sunday && s.Court == "Hala")
+                .Take(finalsCount)
+                .ToList();
+
+            // 4) Odebrat vybrané finálové sloty, aby je dál nevzalo group-match logika
+            var remainingSlots = allSlots.Except(finalSlots).ToList();
+
+            // 5) Rozdělit zbytek na nedělní a ostatní pro skupinové zápasy
+            var nonSunday = remainingSlots
+                .Where(s => s.Time.DayOfWeek != DayOfWeek.Sunday)
+                .ToList();
+            var otherSunday = remainingSlots
+                .Where(s => s.Time.DayOfWeek == DayOfWeek.Sunday)
+                .ToList();
+
+            // 6) Naplnit groupSlots – nejprve pátek/sobota, pak (pokud nestačí) neděle jiná než Hala
+            var groupSlots = nonSunday
+                .Take(groupMatchCount)
+                .ToList();
+            if (groupSlots.Count < groupMatchCount)
             {
-                var slot = slots[i];
-                matches.Add(new Match
+                int stillNeeded = groupMatchCount - groupSlots.Count;
+                groupSlots.AddRange(otherSunday.Take(stillNeeded));
+            }
+
+            // 7) Spojit groupSlots + finalSlots a oříznout na sumOfMatches (pro případ, že sumOfMatches < finalsCount+groupMatchCount)
+            var chosenSlots = groupSlots
+                .Concat(finalSlots)
+                .Take(sumOfMatches)
+                .ToList();
+
+            // 8) Vytvořit blank zápasy ze zvolených slotů
+            var matches = chosenSlots
+                .Select(slot => new Match
                 {
                     Time = slot.Time,
                     TimePlayed = "00:00",
@@ -249,13 +328,16 @@ namespace bc_handball_be.Core.Services
                     HomeScore = 0,
                     AwayScore = 0,
                     State = MatchState.Generated
-                });
-            }
+                })
+                .ToList();
 
+            // 9) Uložit a vrátit
             await _matchRepository.AddMatchesAsync(matches);
-
             return matches;
         }
+
+
+
 
         private List<(DateTime Time, string Court)> GenerateMatchSlots()
         {
@@ -325,7 +407,7 @@ namespace bc_handball_be.Core.Services
 
         private bool IsLunchTime(DateTime time)
         {
-            var start = time.Date + new TimeSpan(11, 0, 0);
+            var start = time.Date + new TimeSpan(11, 30, 0);
             var end = time.Date + new TimeSpan(12, 30, 0);
             return time >= start && time < end;
         }
@@ -419,8 +501,12 @@ namespace bc_handball_be.Core.Services
                     new CourtRule { Court = "Hřiště 3 Umělá tráva" },
                     new CourtRule { Court = "Hřiště 4 Umělá tráva" },
                     new CourtRule { Court = "Hřiště 5 Tartan Dělnický dům" },
-                    new CourtRule { Court = "Hřiště 6 Beton Dělnický dům" }
-                    
+                    new CourtRule { Court = "Hřiště 6 Beton Dělnický dům" },
+                    new CourtRule { Court = "Hřiště 2 Tartan"},
+                    new CourtRule { Court = "Hřiště 1 Tartan", AllowedDays = new() { DayOfWeek.Saturday }
+                    },
+
+
                 };
             }
 
@@ -441,8 +527,8 @@ namespace bc_handball_be.Core.Services
             {
                 _categoryCourtRules[starsiZaci.Id] = new List<CourtRule>
                 {
-                    new CourtRule { Court = "Hřiště 1 Tartan", IsPrimary = true },
-                    new CourtRule { Court = "Hřiště 2 Tartan", IsPrimary = true },
+                    new CourtRule { Court = "Hřiště 1 Tartan" },
+                    new CourtRule { Court = "Hřiště 2 Tartan" },
                     new CourtRule { Court = "Hala"}
                 };
             }
@@ -451,7 +537,7 @@ namespace bc_handball_be.Core.Services
             {
                 _categoryCourtRules[mladsiDorost.Id] = new List<CourtRule>
                 {
-                    new CourtRule { Court = "Hala", IsPrimary = true},
+                    new CourtRule { Court = "Hala"},
                     //new CourtRule { Court = "Hřiště 1 Tartan", AllowedDays = new() { DayOfWeek.Saturday, DayOfWeek.Sunday } },
                     //new CourtRule { Court = "Hřiště 2 Tartan", AllowedDays = new() { DayOfWeek.Saturday, DayOfWeek.Sunday } },
                 };
@@ -565,124 +651,156 @@ namespace bc_handball_be.Core.Services
 
         public async Task<List<Match>> AssignAllGroupMatchesFromScratch(int edition)
         {
-            // 1) Inicializace court rules
             if (_categoryCourtRules.Count == 0)
                 await InitCategoryCourtRules(edition);
 
-            // 2) Pořadí kategorií
-            var preferredCategoryNames = new[] { "Mladší dorostenci", "Starší žáci", "Mladší žáci", "Mini 6+1" };
-            var allCategories = await _categoryService.GetCategoriesAsync(edition);
-            var categories = allCategories
-                .OrderBy(c =>
-                {
-                    var idx = Array.IndexOf(preferredCategoryNames, c.Name);
+            // 1) Seřazené kategorie
+            var preferredNames = new[] { "Mladší dorostenci", "Starší žáci", "Mladší žáci", "Mini 6+1" };
+            var categories = (await _categoryService.GetCategoriesAsync(edition))
+                .Where(c => c.Name != "Mini 4+1" && _categoryCourtRules.ContainsKey(c.Id))
+                .OrderBy(c => {
+                    var idx = Array.IndexOf(preferredNames, c.Name);
                     return idx >= 0 ? idx : int.MaxValue;
-                })
+                }).ToList();
+
+            // 2) Všechny sloty
+            var allSlots = (await _matchRepository.GetMatchesByStateAsync(MatchState.Generated))
+                .OrderBy(s => s.Time)
                 .ToList();
 
-            // 3) Načteme všechny sloty jednou
-            var allSlots = await _matchRepository.GetMatchesByStateAsync(MatchState.Generated);
+            // 3) Pro každou skupinu vytvoříme rozvrh kol
+            var groupSchedules = new List<(
+                int CategoryId,
+                int GroupId,
+                List<List<(int Home, int Away)>> Rounds
+            )>();
 
-            // 4) Načteme týmy a skupiny
-            var teams = await _teamService.GetTeamsAsync();
-            var groups = await _groupService.GetGroupsAsync();
-
-            var preferredDays = new List<DayOfWeek> { DayOfWeek.Friday, DayOfWeek.Saturday, DayOfWeek.Sunday };
-            var assignedMatches = new List<Match>();
-            var lastMatchTime = new Dictionary<int, DateTime>();
-            var occupiedSlots = new HashSet<int>();
-
-            // 5) Projdeme kategorie pořadově
-            foreach (var category in categories)
+            foreach (var cat in categories)
             {
-                // třeba přeskočit Mini 4+1 pokud nechcete
-                if (category.Name == "Mini 4+1") continue;
-                if (!_categoryCourtRules.ContainsKey(category.Id)) continue;
+                var teams = (await _teamService.GetTeamsAsync()).Where(t => t.CategoryId == cat.Id).ToList();
+                var groups = await _groupService.GetGroupsByCategoryAsync(cat.Id);
 
-                // 6) Vybereme si jen ty sloty, které court-rules dovolí pro tuto kategorii
-                var categorySlots = allSlots
-                    .Where(s =>
-                        CourtAllowedForCategory(category.Id, s.Playground, s.Time.DayOfWeek)
-                        && !occupiedSlots.Contains(s.Id))
-                    .OrderBy(s => preferredDays.IndexOf(s.Time.DayOfWeek))
-                    .ThenByDescending(s =>
-                        _categoryCourtRules[category.Id]
-                           .FirstOrDefault(r => r.Court == s.Playground)?.IsPrimary ?? false)
-                    .ThenBy(s => s.Time.TimeOfDay)
-                    .ToList();
-
-                // fallback, pokud žádné court-allowed sloty
-                if (!categorySlots.Any())
+                foreach (var grp in groups)
                 {
-                    categorySlots = allSlots
-                        .Where(s => !occupiedSlots.Contains(s.Id))
-                        .OrderBy(s => preferredDays.IndexOf(s.Time.DayOfWeek))
-                        .ThenBy(s => s.Time.TimeOfDay)
+                    var teamIds = teams
+                        .Where(t => t.TeamGroups.Any(tg => tg.GroupId == grp.Id))
+                        .Select(t => t.Id)
                         .ToList();
+
+                    var rounds = GenerateRoundRobinSchedule(teamIds);
+                    groupSchedules.Add((cat.Id, grp.Id, rounds));
                 }
+            }
 
-                var categoryTeams = teams.Where(t => t.CategoryId == category.Id).ToList();
-                var categoryGroups = groups.Where(g => g.CategoryId == category.Id).ToList();
+            // 4) Interleaving: pro kolo č.0 vezmeme kolo 0 všech skupin, pak kolo 1, …
+            var interleaved = new List<(int Home, int Away, int CatId, int GrpId)>();
+            int maxRounds = groupSchedules.Max(gs => gs.Rounds.Count);
 
-                foreach (var group in categoryGroups)
+            for (int round = 0; round < maxRounds; round++)
+            {
+                foreach (var gs in groupSchedules)
                 {
-                    var groupTeams = categoryTeams
-                        .Where(t => t.TeamGroups.Any(tg => tg.GroupId == group.Id))
-                        .ToList();
-
-                    foreach (var (homeId, awayId) in GetTeamPairsInGroup(groupTeams))
+                    if (round < gs.Rounds.Count)
                     {
-                        // 7) Hledáme slot dle rest + lunch
-                        Match chosen = categorySlots.FirstOrDefault(s =>
-                            HasEnoughRest(lastMatchTime, homeId, s.Time)
-                            && HadEnoughLunchBreak(homeId, s.Time, assignedMatches)
-                            && HasEnoughRest(lastMatchTime, awayId, s.Time)
-                            && HadEnoughLunchBreak(awayId, s.Time, assignedMatches)
-                        );
-
-                        // 8) Fallback na courier + rest
-                        if (chosen == null)
+                        foreach (var (home, away) in gs.Rounds[round])
                         {
-                            chosen = categorySlots.FirstOrDefault(s =>
-                                HasEnoughRest(lastMatchTime, homeId, s.Time)
-                                && HasEnoughRest(lastMatchTime, awayId, s.Time)
-                            );
-                        }
-
-                        // 9) Konečný fallback na cokoliv
-                        if (chosen == null)
-                        {
-                            chosen = categorySlots.FirstOrDefault();
-                        }
-
-                        if (chosen != null)
-                        {
-                            // přiřazení
-                            chosen.HomeTeamId = homeId;
-                            chosen.AwayTeamId = awayId;
-                            chosen.GroupId = group.Id;
-                            chosen.State = MatchState.None;
-                            await _matchRepository.UpdateMatchAsync(chosen);
-
-                            lastMatchTime[homeId] = chosen.Time;
-                            lastMatchTime[awayId] = chosen.Time;
-                            occupiedSlots.Add(chosen.Id);
-                            assignedMatches.Add(chosen);
-
-                            // odstraníme ho z poolu
-                            categorySlots.Remove(chosen);
-                        }
-                        else
-                        {
-                            _logger.LogWarning(
-                                "Kategorie {cat}: nenalezen žádný slot ani po všech fallbackech pro zápas {h}-{a}",
-                                category.Name, homeId, awayId);
+                            interleaved.Add((home, away, gs.CategoryId, gs.GroupId));
                         }
                     }
                 }
             }
 
-            return assignedMatches;
+            // 5) Sekvenčně přiřazujeme sloty stejným pravidlům jako doteď
+            var assigned = new List<Match>();
+            var lastMatchTime = new Dictionary<int, DateTime>();
+            var occupiedSlots = new HashSet<int>();
+
+            foreach (var req in interleaved)
+            {
+                // 5a) Jen court‐rules kompatibilní
+                var validSlots = allSlots
+                    .Where(s => !occupiedSlots.Contains(s.Id)
+                                && CourtAllowedForCategory(req.CatId, s.Playground, s.Time.DayOfWeek))
+                    .ToList();
+
+                // 5b) Pokus 1: rest + lunch
+                var slot = validSlots.FirstOrDefault(s =>
+                    HasEnoughRest(lastMatchTime, req.Home, s.Time)
+                 && HadEnoughLunchBreak(req.Home, s.Time, assigned)
+                 && HasEnoughRest(lastMatchTime, req.Away, s.Time)
+                 && HadEnoughLunchBreak(req.Away, s.Time, assigned)
+                )
+                // 5c) Pokus 2: jen rest
+                ?? validSlots.FirstOrDefault(s =>
+                    HasEnoughRest(lastMatchTime, req.Home, s.Time)
+                 && HasEnoughRest(lastMatchTime, req.Away, s.Time)
+                )
+                // 5d) Fallback: jakýkoli volný
+                ?? allSlots.FirstOrDefault(s => !occupiedSlots.Contains(s.Id));
+
+                if (slot != null)
+                {
+                    slot.HomeTeamId = req.Home;
+                    slot.AwayTeamId = req.Away;
+                    slot.GroupId = req.GrpId;
+                    slot.State = MatchState.None;
+                    await _matchRepository.UpdateMatchAsync(slot);
+
+                    lastMatchTime[req.Home] = slot.Time;
+                    lastMatchTime[req.Away] = slot.Time;
+                    occupiedSlots.Add(slot.Id);
+                    assigned.Add(slot);
+                }
+                else
+                {
+                    _logger.LogWarning(
+                        "Nenalezen vhodný slot pro {Home}-{Away} (kat {Cat}, skup {Grp})",
+                        req.Home, req.Away, req.CatId, req.GrpId
+                    );
+                }
+            }
+
+            return assigned;
+        }
+
+
+        private List<List<(int HomeId, int AwayId)>> GenerateRoundRobinSchedule(List<int> teamIds)
+        {
+            var teams = new List<int>(teamIds);
+            bool hasDummy = false;
+
+            // pokud lichý počet, přidáme „mrtvý“ tým
+            if (teams.Count % 2 != 0)
+            {
+                teams.Add(-1);
+                hasDummy = true;
+            }
+
+            int n = teams.Count;
+            int rounds = n - 1;
+            var schedule = new List<List<(int, int)>>();
+
+            for (int round = 0; round < rounds; round++)
+            {
+                var pairs = new List<(int, int)>();
+                for (int i = 0; i < n / 2; i++)
+                {
+                    int t1 = teams[i];
+                    int t2 = teams[n - 1 - i];
+                    // zápasy s „mrtvým“ týmem přeskočíme
+                    if (t1 != -1 && t2 != -1)
+                        pairs.Add((t1, t2));
+                }
+                schedule.Add(pairs);
+
+                // otočíme kromě pevného prvního prvku
+                int last = teams[n - 1];
+                for (int i = n - 1; i > 1; i--)
+                    teams[i] = teams[i - 1];
+                teams[1] = last;
+            }
+
+            return schedule;
         }
 
 
@@ -785,7 +903,40 @@ namespace bc_handball_be.Core.Services
             var matches = await _matchRepository.GetMatchesByTeamIdAsync(teamId);
             return matches;
         }
+
+        public async Task<List<Match>> GetGeneratedSlotsAsync(int edition)
+        {
+            // předpokládám, že repository umí filtrovat podle edice + stavu
+            return (await _matchRepository
+                .GetMatchesByStateAsync(MatchState.Generated))
+                .Where(m => m.Category == null)
+                .ToList();
+        }
+
+        public async Task<Match> CreateSlotAsync(int edition, DateTime time, string playground)
+        {
+            var slot = new Match
+            {
+                Time = time,
+                Playground = playground,
+                TimePlayed = "00:00",
+                HomeScore = 0,
+                AwayScore = 0,
+                State = MatchState.Generated
+                
+            };
+            await _matchRepository.AddMatchAsync(slot);
+            return slot;
+        }
+
+        public async Task DeleteSlotAsync(int slotId)
+        {
+            var slot = await _matchRepository.GetMatchByIdAsync(slotId);
+            if (slot == null) throw new KeyNotFoundException($"Slot {slotId} not found");
+            await _matchRepository.DeleteMatchAsync(slot.Id);
+        }
+
     }
-    
+
 }
 

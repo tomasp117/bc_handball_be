@@ -141,12 +141,12 @@ namespace bc_handball_be.Infrastructure.Persistence
                 .HasForeignKey(p => p.CategoryId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // 1:N Category - Coach
-            modelBuilder.Entity<Category>()
-                .HasMany(c => c.Voting)
-                .WithOne(co => co.Category)
-                .HasForeignKey(co => co.CategoryId)
-                .OnDelete(DeleteBehavior.Cascade);
+            //// 1:N Category - Coach
+            //modelBuilder.Entity<Category>()
+            //    .HasMany(c => c.Voting)
+            //    .WithOne(co => co.Category)
+            //    .HasForeignKey(co => co.CategoryId)
+            //    .OnDelete(DeleteBehavior.Cascade);
 
             // 1:1 HomeTeam and AwayTeam - Match
             modelBuilder.Entity<Match>()

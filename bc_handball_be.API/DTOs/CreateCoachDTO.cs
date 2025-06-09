@@ -17,6 +17,6 @@ namespace bc_handball_be.API.DTOs
         public char License { get; set; }
 
         public int TeamId { get; set; }
-        public int CategoryId { get; set; }
+        //public int CategoryId { get; set; }
     }
 }

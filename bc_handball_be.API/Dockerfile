@@ -30,5 +30,9 @@ FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
 
+RUN mkdir -p wwwroot/images \
+    && chmod -R 755 wwwroot \
+    && chmod -R 775 wwwroot/images
+
 # Použití CMD místo ENTRYPOINT pro flexibilitu
-CMD ["dotnet", "bc_handball_be.API.dll", "--urls", "http://0.0.0.0:5000"]
+CMD ["dotnet", "bc_handball_be.API.dll", "--urls", "http://0.0.0.0:8080"]

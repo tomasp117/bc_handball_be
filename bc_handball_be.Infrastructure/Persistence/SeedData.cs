@@ -31,11 +31,11 @@ namespace bc_handball_be.Infrastructure.Persistence
                     {
                         var categories = new List<Category>
                         {
-                            new Category { Name = "Mini 4+1", VoitingOpen = false, TournamentInstanceId = tournamentInstance.Id },
-                            new Category { Name = "Mini 6+1", VoitingOpen = false, TournamentInstanceId = tournamentInstance.Id },
-                            new Category { Name = "Mladší žáci", VoitingOpen = false, TournamentInstanceId = tournamentInstance.Id },
-                            new Category { Name = "Starší žáci", VoitingOpen = false, TournamentInstanceId = tournamentInstance.Id },
-                            new Category { Name = "Mladší dorostenci", VoitingOpen = false, TournamentInstanceId = tournamentInstance.Id }
+                            new Category { Name = "Mini 4+1",  TournamentInstanceId = tournamentInstance.Id },
+                            new Category { Name = "Mini 6+1", TournamentInstanceId = tournamentInstance.Id },
+                            new Category { Name = "Mladší žáci", TournamentInstanceId = tournamentInstance.Id },
+                            new Category { Name = "Starší žáci", TournamentInstanceId = tournamentInstance.Id },
+                            new Category { Name = "Mladší dorostenci", TournamentInstanceId = tournamentInstance.Id }
                         };
 
                         context.Categories.AddRange(categories);
@@ -222,7 +222,7 @@ namespace bc_handball_be.Infrastructure.Persistence
                             {
                                 Person = person,
                                 TeamId = team.Id,
-                                CategoryId = team.CategoryId,
+                               // CategoryId = team.CategoryId,
                                 License = (char)('A' + rnd.Next(0, 3))
                             };
 

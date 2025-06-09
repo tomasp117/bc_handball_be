@@ -150,5 +150,32 @@ namespace bc_handball_be.API.Controllers
                 return StatusCode(500, "Chyba při generování soupisky.");
             }
         }
+
+        [Authorize(Roles = "Admin")]
+        [HttpGet("{edition}/matches/slots")]
+        public async Task<IActionResult> GetSlots(int edition)
+        {
+            var slots = await _matchService.GetGeneratedSlotsAsync(edition);
+            var dto = _mapper.Map<List<SlotDTO>>(slots);
+            return Ok(dto);
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPost("{edition}/matches/slots")]
+        public async Task<IActionResult> AddSlot(int edition, [FromBody] SlotDTO body)
+        {
+            var slot = await _matchService.CreateSlotAsync(edition, body.Time, body.Playground);
+            var dto = _mapper.Map<SlotDTO>(slot);
+            return CreatedAtAction(nameof(GetSlots), new { edition }, dto);
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpDelete("matches/slots/{slotId}")]
+        public async Task<IActionResult> DeleteSlot(int slotId)
+        {
+            await _matchService.DeleteSlotAsync(slotId);
+            return NoContent();
+        }
+
     }
 }

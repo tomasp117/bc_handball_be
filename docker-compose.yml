@@ -37,6 +37,8 @@ services:
       - "3000:80" 
 
   bc_handball_be:
+    volumes:
+      - images_data:/app/wwwroot/images  
     build:
       context: .
       dockerfile: bc_handball_be.API/Dockerfile
@@ -59,3 +61,4 @@ services:
 
 volumes:
   mysql_data:
+  images_data:    

@@ -120,6 +120,13 @@ namespace bc_handball_be.API.Controllers
                 await file.CopyToAsync(stream);
             }
 
+            // Check if the file exists
+            if (!System.IO.File.Exists(filePath))
+            {
+                return StatusCode(500, "File upload failed.");
+            }
+
+
             await _clubService.UpdateLogoAsync(clubId, fileName);
 
             return Ok($"{fileName}");

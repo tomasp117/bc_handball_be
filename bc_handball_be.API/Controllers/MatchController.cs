@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace bc_handball_be.API.Controllers
 {
@@ -102,9 +103,27 @@ namespace bc_handball_be.API.Controllers
         {
             var match = await _matchService.GetMatchByIdAsync(id);
             if (match == null)
-            {
                 return NotFound();
+
+            var userRole = User.FindFirstValue(ClaimTypes.Role);
+            var username = User.Identity?.Name
+                           ?? User.FindFirstValue(ClaimTypes.Name)
+                           ?? User.Claims.FirstOrDefault(c => c.Type == "preferred_username")?.Value;
+
+            // Debug: zaloguj username a playground, abys viděl, co porovnáváš
+            _logger.LogInformation("User {username} is requesting match {id} on playground {playground}", username, id, match.Playground);
+
+            if (userRole == "Recorder")
+            {
+                // Porovnej s ohledem na malá/velká písmena
+                if (!string.Equals(match.Playground, username, StringComparison.OrdinalIgnoreCase))
+                {
+                    _logger.LogWarning("User {username} does not have permission to access match {id} on playground {playground}", username, id, match.Playground);
+ 
+                    return Forbid();
+                }
             }
+
             var dto = _mapper.Map<MatchDTO>(match);
             return Ok(dto);
         }

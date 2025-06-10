@@ -7,12 +7,11 @@
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <ContainerDevelopmentMode>Regular</ContainerDevelopmentMode>
     <UserSecretsId>1cbcffc2-2de6-45ae-b71f-56451316430e</UserSecretsId>
-    <!-- Prevent duplicate Content items by disabling default content inclusion -->
-    <EnableDefaultContentItems>false</EnableDefaultContentItems>
   </PropertyGroup>
 
   <ItemGroup>
     <Compile Remove="wwwroot\NewFolder\**" />
+	  
     <Content Remove="wwwroot\NewFolder\**" />
     <EmbeddedResource Remove="wwwroot\NewFolder\**" />
     <None Remove="wwwroot\NewFolder\**" />
@@ -54,9 +53,5 @@
     <Folder Include="wwwroot\" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Content Include="wwwroot\images\**\*">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
+
 </Project>

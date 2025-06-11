@@ -6,5 +6,6 @@
         public int HomeTeamId { get; set; }
         public int AwayTeamId { get; set; }
         public int GroupId { get; set; }
+        public int? SequenceNumber { get; set; }
     }
 }

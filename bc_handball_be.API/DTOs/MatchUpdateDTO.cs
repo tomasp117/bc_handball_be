@@ -6,5 +6,6 @@
         public int? HomeScore { get; set; }
         public int? AwayScore { get; set; }
         public string? State { get; set; }
+        public int? SequenceNumber { get; set; }
     }
 }

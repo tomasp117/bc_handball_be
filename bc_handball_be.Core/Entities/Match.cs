@@ -25,6 +25,8 @@ namespace bc_handball_be.Core.Entities
         public int? AwayScore { get; set; } = 0;
         public MatchState State { get; set; } = MatchState.None;
 
+        public int? SequenceNumber { get; set; }
+
         // Navigation properties
         public ICollection<Event> Events { get; set; } = new List<Event>();
         public Category? Category { get; set; } = null!;

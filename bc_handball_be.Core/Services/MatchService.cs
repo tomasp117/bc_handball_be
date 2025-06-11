@@ -865,6 +865,7 @@ namespace bc_handball_be.Core.Services
                 match.AwayTeamId = assigned.AwayTeamId;
                 match.GroupId = assigned.GroupId;
                 match.State = MatchState.None;
+                match.SequenceNumber = assigned.SequenceNumber;
             }
 
             await _matchRepository.SaveAsync();

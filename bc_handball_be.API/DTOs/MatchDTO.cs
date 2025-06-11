@@ -10,6 +10,7 @@
         public int? AwayScore { get; set; }
         //public string Score { get; set; } = "0:0";
         public string State { get; set; } = "None";
+        public int? SequenceNumber { get; set; }
 
         public TeamDetailDTO HomeTeam { get; set; } = null!;
         public int? HomeTeamId { get; set; }

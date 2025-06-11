@@ -8,6 +8,7 @@
         public string Playground { get; set; } = string.Empty;
         public string Score { get; set; } = "0:0";
         public string State { get; set; } = "None";
+        public int? SequenceNumber { get; set; }
 
         public TeamDTO HomeTeam { get; set; } = null!;
         public int? HomeTeamId { get; set; }

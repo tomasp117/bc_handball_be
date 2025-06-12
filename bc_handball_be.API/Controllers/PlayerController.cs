@@ -55,6 +55,23 @@ namespace bc_handball_be.API.Controllers
             return Ok("Hráč byl úspěšně aktualizován.");
         }
 
+        [Authorize(Roles = "Admin, Coach, Recorder")]
+        [HttpPatch("{id}/update-number")]
+        public async Task<IActionResult> UpdatePlayerNumber(int id, [FromBody] int newNumber)
+        {
+            _logger.LogInformation("Aktualizace čísla hráče s ID {Id} na {NewNumber}", id, newNumber);
+            var player = await _playerService.GetPlayerByIdAsync(id);
+            if (player == null)
+            {
+                _logger.LogWarning("Hráč s ID {Id} nebyl nalezen.", id);
+                return NotFound("Hráč nebyl nalezen.");
+            }
+            player.Number = newNumber;
+            await _playerService.UpdatePlayerAsync(id, player);
+            _logger.LogInformation("Číslo hráče s ID {Id} bylo úspěšně aktualizováno na {NewNumber}.", id, newNumber);
+            return Ok("Číslo hráče bylo úspěšně aktualizováno.");
+        }
+
         [HttpGet("free")]
         public async Task<IActionResult> GetFreePlayers([FromQuery] int categoryId)
         {

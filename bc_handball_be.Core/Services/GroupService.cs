@@ -86,77 +86,163 @@ namespace bc_handball_be.Core.Services
 
         public async Task<List<GroupStanding>> GetGroupStandingsAsync(int groupId)
         {
-            // 1. Získáš všechny zápasy dané skupiny
             var matches = await _matchRepository.GetMatchesByGroupIdAsync(groupId);
-
-            // 2. Získáš všechny týmy v dané skupině (i když ještě nehrály)
             var teamsInGroup = await _teamRepository.GetTeamsByGroupAsync(groupId);
 
-            var standings = new Dictionary<int, GroupStanding>();
-
-            // 3. Pro každý tým vytvoříš výchozí statistiku
-            foreach (var team in teamsInGroup)
-            {
-                standings[team.Id] = new GroupStanding
+            // 1) Globální statistiky
+            var standings = teamsInGroup
+                .Select(t => new GroupStanding
                 {
-                    TeamId = team.Id,
-                    TeamName = team.Name
-                };
-            }
+                    TeamId = t.Id,
+                    TeamName = t.Name,
+                    MatchesPlayed = 0,
+                    GoalsFor = 0,
+                    GoalsAgainst = 0,
+                    Wins = 0,
+                    Draws = 0,
+                    Losses = 0,
+                    Points = 0
+                })
+                .ToDictionary(s => s.TeamId);
 
-            // 4. Projedeš zápasy a spočítáš statistiky
-            foreach (var match in matches)
+            foreach (var m in matches)
             {
-                if(match.State != MatchState.Done)
-                    continue; 
-                if (match.HomeScore == null || match.AwayScore == null)
-                    continue;
-                if (match.HomeTeamId == null || match.AwayTeamId == null)
+                if (m.State != MatchState.Done ||
+                    !m.HomeScore.HasValue || !m.AwayScore.HasValue ||
+                    !m.HomeTeamId.HasValue || !m.AwayTeamId.HasValue)
                     continue;
 
-                var homeId = match.HomeTeamId.Value;
-                var awayId = match.AwayTeamId.Value;
+                var home = standings[m.HomeTeamId.Value];
+                var away = standings[m.AwayTeamId.Value];
 
-                var home = standings[homeId];
-                var away = standings[awayId];
+                home.MatchesPlayed++; away.MatchesPlayed++;
+                home.GoalsFor += m.HomeScore.Value;
+                home.GoalsAgainst += m.AwayScore.Value;
+                away.GoalsFor += m.AwayScore.Value;
+                away.GoalsAgainst += m.HomeScore.Value;
 
-                home.MatchesPlayed++;
-                away.MatchesPlayed++;
-
-                home.GoalsFor += match.HomeScore.Value;
-                home.GoalsAgainst += match.AwayScore.Value;
-
-                away.GoalsFor += match.AwayScore.Value;
-                away.GoalsAgainst += match.HomeScore.Value;
-
-                if (match.HomeScore > match.AwayScore)
+                if (m.HomeScore > m.AwayScore)
                 {
-                    home.Wins++;
-                    home.Points += 2;
+                    home.Wins++; home.Points += 2;
                     away.Losses++;
                 }
-                else if (match.HomeScore < match.AwayScore)
+                else if (m.HomeScore < m.AwayScore)
                 {
-                    away.Wins++;
-                    away.Points += 2;
+                    away.Wins++; away.Points += 2;
                     home.Losses++;
                 }
                 else
                 {
-                    home.Draws++;
-                    away.Draws++;
-                    home.Points += 1;
-                    away.Points += 1;
+                    home.Draws++; home.Points += 1;
+                    away.Draws++; away.Points += 1;
                 }
             }
 
-            // 5. Vrátíš setříděné výsledky
-            return standings.Values
-                .OrderByDescending(s => s.Points)
-                .ThenByDescending(s => s.GoalsFor - s.GoalsAgainst)
-                .ThenByDescending(s => s.GoalsFor)
-                .ToList();
+            // 2) Vezmeme všechny týmy a předáme do rekurzivní funkce
+            var all = standings.Values.ToList();
+            return SortGroup(all, matches);
         }
+
+        // Rekurzivně setřídí seznam týmů podle celkových bodů a pak mini-ligy
+        private List<GroupStanding> SortGroup(
+            List<GroupStanding> group,
+            List<Match> allMatches)
+        {
+            // rozdělíme podle celkových bodů
+            var buckets = group
+                .GroupBy(t => t.Points)
+                .OrderByDescending(g => g.Key);
+
+            var result = new List<GroupStanding>();
+            foreach (var bucket in buckets)
+            {
+                var tied = bucket.ToList();
+                if (tied.Count == 1)
+                {
+                    // jedinec → rovnou přidáme
+                    result.Add(tied[0]);
+                }
+                else
+                {
+                    // 1) filtrujeme jejich vzájemné zápasy
+                    var miniMatches = allMatches
+                        .Where(m => m.State == MatchState.Done
+                                    && tied.Any(t => t.TeamId == m.HomeTeamId)
+                                    && tied.Any(t => t.TeamId == m.AwayTeamId))
+                        .ToList();
+
+                    // 2) spočítáme mini-statistiky
+                    var miniStats = tied
+                        .Select(team => {
+                            int miniPts = 0, miniGd = 0, miniFor = 0;
+                            foreach (var m in miniMatches)
+                            {
+                                bool isHome = m.HomeTeamId == team.TeamId;
+                                bool isAway = m.AwayTeamId == team.TeamId;
+                                if (!isHome && !isAway) continue;
+
+                                int scTeam = isHome ? m.HomeScore.Value : m.AwayScore.Value;
+                                int scOpp = isHome ? m.AwayScore.Value : m.HomeScore.Value;
+
+                                // mini-body
+                                if (scTeam > scOpp) miniPts += 2;
+                                else if (scTeam == scOpp) miniPts += 1;
+                                // mini-rozdíl
+                                miniGd += (scTeam - scOpp);
+                                // mini-vstřelené góly
+                                miniFor += scTeam;
+                            }
+                            return new
+                            {
+                                Team = team,
+                                MiniPts = miniPts,
+                                MiniGd = miniGd,
+                                MiniFor = miniFor
+                            };
+                        })
+                        .ToList();
+
+                    // 3) seřadíme podle mini-kritérií
+                    miniStats.Sort((x, y) =>
+                    {
+                        int c;
+                        // a) mini-body
+                        c = y.MiniPts.CompareTo(x.MiniPts);
+                        if (c != 0) return c;
+                        // b) mini-rozdíl gólů
+                        c = y.MiniGd.CompareTo(x.MiniGd);
+                        if (c != 0) return c;
+                        // c) mini-vstřelené góly
+                        c = y.MiniFor.CompareTo(x.MiniFor);
+                        if (c != 0) return c;
+                        // d) globální rozdíl gólů
+                        int diffX = x.Team.GoalsFor - x.Team.GoalsAgainst;
+                        int diffY = y.Team.GoalsFor - y.Team.GoalsAgainst;
+                        c = diffY.CompareTo(diffX);
+                        if (c != 0) return c;
+                        // e) globální vstřelené góly
+                        c = y.Team.GoalsFor.CompareTo(x.Team.GoalsFor);
+                        if (c != 0) return c;
+                        // f) fallback abecedně
+                        return string.Compare(
+                          x.Team.TeamName,
+                          y.Team.TeamName,
+                          StringComparison.Ordinal);
+                    });
+
+                    // 4) vezmeme z miniStats nejprve tu první trojici (či kolik tam je shod)
+                    var sortedTeams = miniStats.Select(ms => ms.Team).ToList();
+                    // 5) jestli zůstali nějací se stejnými mini-body atd., rekurzivně na ně
+                    //    (volíme tu první skupinu, která je současně v 'tied' a mají úplně
+                    //     stejná X,Y,Z),
+                    //    ale protože jsme kompletně seřadili celou tied, prostě ho převedeme:
+                    result.AddRange(sortedTeams);
+                }
+            }
+            return result;
+        }
+
+
 
         public async Task SavePlaceholderGroupsAsync(List<PlaceholderGroup> placeholderGroups, int categoryId)
         {

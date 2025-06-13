@@ -864,7 +864,7 @@ namespace bc_handball_be.Core.Services
                 match.HomeTeamId = assigned.HomeTeamId;
                 match.AwayTeamId = assigned.AwayTeamId;
                 match.GroupId = assigned.GroupId;
-                match.State = MatchState.None;
+                match.State = match.State == MatchState.Generated ? MatchState.None : match.State;
                 match.SequenceNumber = assigned.SequenceNumber;
             }
 

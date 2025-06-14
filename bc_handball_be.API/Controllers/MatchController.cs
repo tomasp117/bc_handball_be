@@ -84,7 +84,7 @@ namespace bc_handball_be.API.Controllers
         public async Task<IActionResult> GetMatchesSimple()
         {
             _logger.LogInformation("Fetching matches");
-            var matches = await _matchService.GetMatchesAsync();
+            var matches = await _matchService.GetMatchesForReportAsync();
             matches = matches.Where(m => m.State == MatchState.None || m.State != MatchState.Pending)
                 .OrderBy(m => m.SequenceNumber)
                 .ToList();

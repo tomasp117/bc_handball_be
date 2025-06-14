@@ -22,6 +22,7 @@ namespace bc_handball_be.Core.Interfaces.IRepositories
         Task<List<Match>> GetMatchesByTeamIdAsync(int teamId);
         Task<List<Match>> GetMatchesForReportAsync();
         Task<List<Match>> GetMatchesForTimetableAsync();
+        Task<List<Match>>  GetMatchesUnassignedAsync();
 
         Task DeleteMatchAsync(int matchId);
 

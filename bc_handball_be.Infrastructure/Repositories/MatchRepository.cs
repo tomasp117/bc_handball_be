@@ -142,6 +142,22 @@ namespace bc_handball_be.Infrastructure.Repositories
                 .ToListAsync();
         }
 
+        public async Task<List<Match>> GetMatchesUnassignedAsync()
+        {
+            _logger.LogInformation("Fetching unassigned matches");
+            return await _context.Matches
+                .Include(m => m.HomeTeam)
+                    .ThenInclude(t => t.Players)
+                        .ThenInclude(p => p.Person)
+                .Include(m => m.AwayTeam)
+                    .ThenInclude(t => t.Players)
+                        .ThenInclude(p => p.Person)
+                .Include(m => m.Group)
+                    .ThenInclude(g => g.Category)
+                .Where(m => m.HomeTeamId.HasValue && m.AwayTeamId.HasValue && m.State != MatchState.Generated)
+                .ToListAsync();
+        }
+
         public async Task<List<Match>> GetMatchesByStateAsync(MatchState state)
         {
             return await _context.Matches

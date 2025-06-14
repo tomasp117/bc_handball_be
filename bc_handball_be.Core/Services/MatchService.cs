@@ -830,7 +830,7 @@ namespace bc_handball_be.Core.Services
             var groups = await _groupService.GetGroupsByCategoryAsync(categoryId);
             var teams = await _teamService.GetTeamsByCategoryAsync(categoryId);
 
-            var allMatches = await _matchRepository.GetMatchesAsync();
+            var allMatches = await _matchRepository.GetMatchesUnassignedAsync();
             var realMatches = allMatches.Where(m => m.HomeTeamId.HasValue && m.AwayTeamId.HasValue && m.State != MatchState.Generated).ToList();
 
             var result = new List<UnassignedMatch>();

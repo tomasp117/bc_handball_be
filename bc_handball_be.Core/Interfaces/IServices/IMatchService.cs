@@ -23,6 +23,7 @@ namespace bc_handball_be.Core.Interfaces.IServices
         Task<List<Match>> GetMatchesByGroupIdAsync(int groupId);
         Task<List<Match>> GetMatchesByTeamIdAsync(int teamId);
         Task<List<Match>> GetMatchesForReportAsync();
+        Task<List<Match>> GetMatchesForTimetableAsync();
 
         Task<List<Match>> GetGeneratedSlotsAsync(int edition);
         Task<Match> CreateSlotAsync(int edition, DateTime time, string playground);

@@ -817,6 +817,14 @@ namespace bc_handball_be.Core.Services
             return matches;
         }
 
+        public async Task<List<Match>> GetMatchesForTimetableAsync()
+        {
+            var matches = await _matchRepository.GetMatchesForTimetableAsync();
+            return matches;
+        }
+
+
+
         public async Task<List<UnassignedMatch>> GetUnassignedGroupMatches(int categoryId)
         {
             var groups = await _groupService.GetGroupsByCategoryAsync(categoryId);

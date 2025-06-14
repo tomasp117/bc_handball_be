@@ -102,6 +102,26 @@ namespace bc_handball_be.Infrastructure.Repositories
                 .ToListAsync();
         }
 
+        public async Task<List<Match>> GetMatchesForReportAsync()
+        {
+            _logger.LogInformation("Fetching matches");
+            return await _context.Matches
+                .Include(m => m.HomeTeam)
+                    .ThenInclude(t => t.Players)
+                        .ThenInclude(p => p.Person)
+                .Include(m => m.AwayTeam)
+                    .ThenInclude(t => t.Players)
+                        .ThenInclude(p => p.Person)
+                .Include(m => m.Group)
+                    .ThenInclude(g => g.Category)
+                .Include(m => m.Lineups)
+                    .ThenInclude(l => l.Players)
+                        .ThenInclude(p => p.Player)
+                            .ThenInclude(p => p.Person)
+                .Where(m => m.State == MatchState.None || m.State == MatchState.Pending)
+                .ToListAsync();
+        }
+
         public async Task<List<Match>> GetMatchesByStateAsync(MatchState state)
         {
             return await _context.Matches

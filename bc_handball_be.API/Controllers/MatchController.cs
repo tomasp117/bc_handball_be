@@ -80,6 +80,20 @@ namespace bc_handball_be.API.Controllers
             return Ok(dtos);
         }
 
+        [HttpGet("matches/simple")]
+        public async Task<IActionResult> GetMatchesSimple()
+        {
+            _logger.LogInformation("Fetching matches");
+            var matches = await _matchService.GetMatchesAsync();
+            matches = matches.Where(m => m.State != MatchState.Generated && m.State != MatchState.Done)
+                .OrderBy(m => m.SequenceNumber)
+                .ToList();
+            var dtos = _mapper.Map<List<MatchDTO>>(matches);
+            return Ok(dtos);
+        }
+
+
+
         [HttpGet("matches/unassigned-group-matches/{categoryId}")]
         public async Task<ActionResult<List<UnassignedMatchDTO>>> GetUnassignedGroupMatches(int categoryId)
         {

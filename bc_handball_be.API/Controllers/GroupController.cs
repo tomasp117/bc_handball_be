@@ -144,7 +144,7 @@ namespace bc_handball_be.API.Controllers
                 }
 
                 _logger.LogInformation("Saving {Count} bracket groups for category {CategoryId}", validGroups.Count, category);
-                await _groupService.SaveGroupsAsync(validGroups, category);
+                await _groupService.SaveGroupsBracketAsync(validGroups, category);
 
                 return Ok();
             }

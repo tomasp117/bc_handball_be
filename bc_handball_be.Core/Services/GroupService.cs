@@ -7,7 +7,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Group = bc_handball_be.Core.Entities.Group;
+using Match = bc_handball_be.Core.Entities.Match;
 
 namespace bc_handball_be.Core.Services
 {
@@ -328,10 +331,120 @@ namespace bc_handball_be.Core.Services
             }
         }
 
+        public async Task SaveGroupsBracketAsync(
+            List<Group> groups,
+            int categoryId)
+        {
+            if (groups == null || !groups.Any())
+            {
+                _logger.LogWarning("No bracket groups provided for category {CategoryId}", categoryId);
+                return;
+            }
+            _logger.LogInformation("Saving {Count} bracket groups for category {CategoryId}", groups.Count, categoryId);
+            // Ověříme, že všechny týmy ve skupinách existují v DB
+            var teamsFromDb = await _teamRepository.GetTeamsByCategoryAsync(categoryId);
+            var teamDictionary = teamsFromDb.ToDictionary(t => t.Id);
+            foreach (var group in groups)
+            {
+                group.CategoryId = categoryId;
+                group.TeamGroups = group.TeamGroups
+                    .Where(tg => teamDictionary.ContainsKey(tg.TeamId))
+                    .Select(tg => new TeamGroup
+                    {
+                        TeamId = tg.TeamId,
+                        Group = group,
+                        Team = teamDictionary[tg.TeamId]
+                    })
+                    .ToList();
+            }
+            await _groupRepository.SaveGroupsAsync(groups, categoryId);
+        }
+
 
         public async Task<List<Group>> GetGroupsWithPlaceholderTeamsAsync(int categoryId)
         {
             return await _groupRepository.GetGroupsWithPlaceholderTeamsAsync(categoryId);
         }
+
+        public async Task<List<TeamFinalPosition>> GetFinalPositionsAsync(int categoryId)
+        {
+            var allGroups = await _groupRepository.GetGroupsByCategoryAsync(categoryId);
+
+            // 1) Hlavní finálové skupiny (FinalGroup 1 a 3)
+            var mainFinals = allGroups
+                .Where(g => g.FinalGroup == 1 || g.FinalGroup == 3)
+                .OrderBy(g => g.FinalGroup);
+
+            var result = new List<TeamFinalPosition>();
+
+            foreach (var grp in mainFinals)
+            {
+                var standings = await GetGroupStandingsAsync(grp.Id);
+                int startPlace = grp.FinalGroup.Value;
+                for (int i = 0; i < standings.Count; i++)
+                {
+                    result.Add(new TeamFinalPosition
+                    {
+                        TeamId = standings[i].TeamId,
+                        TeamName = standings[i].TeamName,
+                        FinalPlace = startPlace + i
+                    });
+                }
+            }
+
+            // 2) Najdi mini-skupiny pro boj o 5.–10. místo (Phase ve tvaru "5.1", "5.2")
+            var mini5Groups = allGroups
+                .Where(g => g.Phase != null && Regex.IsMatch(g.Phase, @"^5\.\d+$"))
+                // seřadíme podle části za tečkou (1 vs. 2)
+                .OrderBy(g => int.Parse(g.Phase.Split('.')[1]))
+                .ToList();
+
+            // 3) Spočti pořadí uvnitř každé mini-skupiny
+            var miniStats = mini5Groups.Select(g => new {
+                Group = g,
+                Standings = GetGroupStandingsAsync(g.Id).Result
+            }).ToList();
+
+            // 4) Vezmi vítěze každé mini-skupiny → pozice 5.–6.
+            var winners5 = miniStats.Select(m => m.Standings.First()).ToList();
+            for (int i = 0; i < winners5.Count; i++)
+            {
+                result.Add(new TeamFinalPosition
+                {
+                    TeamId = winners5[i].TeamId,
+                    TeamName = winners5[i].TeamName,
+                    FinalPlace = 5 + i
+                });
+            }
+
+            // 5) Vezmi druhé týmy → pozice 7.–8.
+            var seconds5 = miniStats.Select(m => m.Standings.ElementAtOrDefault(1)).Where(x => x != null).ToList();
+            for (int i = 0; i < seconds5.Count; i++)
+            {
+                result.Add(new TeamFinalPosition
+                {
+                    TeamId = seconds5[i].TeamId,
+                    TeamName = seconds5[i].TeamName,
+                    FinalPlace = 7 + i
+                });
+            }
+
+            // 6) Třetí týmy (kde existují) → 9.–10.
+            var thirds5 = miniStats.Select(m => m.Standings.ElementAtOrDefault(2)).Where(x => x != null).ToList();
+            for (int i = 0; i < thirds5.Count; i++)
+            {
+                result.Add(new TeamFinalPosition
+                {
+                    TeamId = thirds5[i].TeamId,
+                    TeamName = thirds5[i].TeamName,
+                    FinalPlace = 9 + i
+                });
+            }
+
+            return result;
+        }
+
+       
+
     }
 }

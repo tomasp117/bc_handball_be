@@ -11,6 +11,8 @@ namespace bc_handball_be.Core.Entities
 
         public string? Phase { get; set; } // e.g. "Group Stage", "Quarterfinals", "Semifinals", "Finals"
 
+        public int? FinalGroup { get; set; }
+
         // Navigation properties
         //public ICollection<Team> Teams { get; set; } = new List<Team>();
         public ICollection<Match> Matches { get; set; } = new List<Match>();

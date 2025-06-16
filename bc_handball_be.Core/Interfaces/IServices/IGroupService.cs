@@ -16,6 +16,10 @@ namespace bc_handball_be.Core.Interfaces.IServices
         Task<List<GroupStanding>> GetGroupStandingsAsync(int groupId);
         Task SavePlaceholderGroupsAsync(List<PlaceholderGroup> placeholderGroups, int categoryId);
         Task<List<Group>> GetGroupsWithPlaceholderTeamsAsync(int categoryId);
+        Task SaveGroupsBracketAsync(
+            List<Group> groups,
+            int categoryId);
+        Task<List<TeamFinalPosition>> GetFinalPositionsAsync(int categoryId);
 
     }
 }

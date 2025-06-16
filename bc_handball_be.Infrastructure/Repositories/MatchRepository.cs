@@ -190,15 +190,15 @@ namespace bc_handball_be.Infrastructure.Repositories
             _logger.LogInformation("Fetching matches for category ID {categoryId}", categoryId);
             return await _context.Matches
                 .Include(m => m.HomeTeam)
-                    .ThenInclude(t => t.Players)
-                        .ThenInclude(p => p.Person)
+                    //.ThenInclude(t => t.Players)
+                    //    .ThenInclude(p => p.Person)
                 .Include(m => m.AwayTeam)
-                    .ThenInclude(t => t.Players)
-                        .ThenInclude(p => p.Person)
+                    //.ThenInclude(t => t.Players)
+                    //    .ThenInclude(p => p.Person)
                 .Include(m => m.Lineups)
-                    .ThenInclude(l => l.Players)
-                        .ThenInclude(p => p.Player)
-                            .ThenInclude(p => p.Person)
+                    //.ThenInclude(l => l.Players)
+                    //    .ThenInclude(p => p.Player)
+                    //        .ThenInclude(p => p.Person)
                 .Where(m => m.Group.Category.Id == categoryId)
                 .ToListAsync();
         }

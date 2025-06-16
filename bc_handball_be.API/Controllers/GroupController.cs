@@ -229,5 +229,16 @@ namespace bc_handball_be.API.Controllers
             return Ok(result);
         }
 
+        [HttpGet("final-standings")]
+        public async Task<IActionResult> Get([FromQuery] int categoryId)
+        {
+            var positions = await _groupService.GetFinalPositionsAsync(categoryId);
+            if (positions == null || positions.Count == 0)
+                return NotFound($"Žádné konečné pořadí pro kategorii {categoryId}.");
+
+            return Ok(positions);
+        }
+        
+
     }
 }

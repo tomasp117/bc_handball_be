@@ -368,83 +368,68 @@ namespace bc_handball_be.Core.Services
 
         public async Task<List<TeamFinalPosition>> GetFinalPositionsAsync(int categoryId)
         {
+            // 1) Načti všechny skupiny i týmy pro tuto kategorii
             var allGroups = await _groupRepository.GetGroupsByCategoryAsync(categoryId);
-
-            // 1) Hlavní finálové skupiny (FinalGroup 1 a 3)
-            var mainFinals = allGroups
-                .Where(g => g.FinalGroup == 1 || g.FinalGroup == 3)
-                .OrderBy(g => g.FinalGroup);
+            var allTeams = await _teamRepository.GetTeamsByCategoryAsync(categoryId);
+            int totalTeams = allTeams.Count();
 
             var result = new List<TeamFinalPosition>();
+            var assignedTeamIds = new HashSet<int>();
 
-            foreach (var grp in mainFinals)
+            // 2) Finálové skupiny: ty, které mají FinalGroup != null
+            var finals = allGroups
+                .Where(g => g.FinalGroup.HasValue)
+                .OrderBy(g => g.FinalGroup.Value);
+
+            foreach (var grp in finals)
             {
                 var standings = await GetGroupStandingsAsync(grp.Id);
                 int startPlace = grp.FinalGroup.Value;
                 for (int i = 0; i < standings.Count; i++)
                 {
+                    var team = standings[i];
                     result.Add(new TeamFinalPosition
                     {
-                        TeamId = standings[i].TeamId,
-                        TeamName = standings[i].TeamName,
+                        TeamId = team.TeamId,
+                        TeamName = team.TeamName,
                         FinalPlace = startPlace + i
                     });
+                    assignedTeamIds.Add(team.TeamId);
                 }
             }
 
-            // 2) Najdi mini-skupiny pro boj o 5.–10. místo (Phase ve tvaru "5.1", "5.2")
-            var mini5Groups = allGroups
-                .Where(g => g.Phase != null && Regex.IsMatch(g.Phase, @"^5\.\d+$"))
-                // seřadíme podle části za tečkou (1 vs. 2)
-                .OrderBy(g => int.Parse(g.Phase.Split('.')[1]))
+            // 3) Najdi dírky (ty pozice, které zatím nikdo nezabral) od 1 do totalTeams
+            var occupiedPlaces = result.Select(r => r.FinalPlace).ToHashSet();
+            var holes = Enumerable
+                .Range(1, totalTeams)
+                .Where(p => !occupiedPlaces.Contains(p))
                 .ToList();
 
-            // 3) Spočti pořadí uvnitř každé mini-skupiny
-            var miniStats = mini5Groups.Select(g => new {
-                Group = g,
-                Standings = GetGroupStandingsAsync(g.Id).Result
-            }).ToList();
+            // 4) Zbývající týmy (které ještě nejsou v assignedTeamIds), 
+            //    seřaď libovolně (např. podle názvu) a přiřaď jim dírky postupně
+            var remainingTeams = allTeams
+                .Where(t => !assignedTeamIds.Contains(t.Id))
+                .OrderBy(t => t.Name)
+                .ToList();
 
-            // 4) Vezmi vítěze každé mini-skupiny → pozice 5.–6.
-            var winners5 = miniStats.Select(m => m.Standings.First()).ToList();
-            for (int i = 0; i < winners5.Count; i++)
+            for (int i = 0; i < remainingTeams.Count && i < holes.Count; i++)
             {
+                var t = remainingTeams[i];
                 result.Add(new TeamFinalPosition
                 {
-                    TeamId = winners5[i].TeamId,
-                    TeamName = winners5[i].TeamName,
-                    FinalPlace = 5 + i
+                    TeamId = t.Id,
+                    TeamName = t.Name,
+                    FinalPlace = holes[i]
                 });
             }
 
-            // 5) Vezmi druhé týmy → pozice 7.–8.
-            var seconds5 = miniStats.Select(m => m.Standings.ElementAtOrDefault(1)).Where(x => x != null).ToList();
-            for (int i = 0; i < seconds5.Count; i++)
-            {
-                result.Add(new TeamFinalPosition
-                {
-                    TeamId = seconds5[i].TeamId,
-                    TeamName = seconds5[i].TeamName,
-                    FinalPlace = 7 + i
-                });
-            }
-
-            // 6) Třetí týmy (kde existují) → 9.–10.
-            var thirds5 = miniStats.Select(m => m.Standings.ElementAtOrDefault(2)).Where(x => x != null).ToList();
-            for (int i = 0; i < thirds5.Count; i++)
-            {
-                result.Add(new TeamFinalPosition
-                {
-                    TeamId = thirds5[i].TeamId,
-                    TeamName = thirds5[i].TeamName,
-                    FinalPlace = 9 + i
-                });
-            }
-
-            return result;
+            return result
+                .OrderBy(r => r.FinalPlace)   // finálně setřiď podle čísla umístění
+                .ToList();
         }
 
-       
+
+
 
     }
 }

@@ -269,6 +269,7 @@ namespace bc_handball_be.Core.Services
                 {
                     Name = input.Name,
                     Phase = input.Phase,
+                    FinalGroup = input.FinalGroup,
                     CategoryId = categoryId,
                     TeamGroups = new List<TeamGroup>()
                 };

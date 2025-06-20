@@ -71,6 +71,7 @@ namespace bc_handball_be.Infrastructure.Repositories
                         Name = g.Name,
                         CategoryId = categoryId,
                         Phase = g.Phase,
+                        FinalGroup = g.FinalGroup,
                         TeamGroups = g.TeamGroups,
                     })
                     .ToList();

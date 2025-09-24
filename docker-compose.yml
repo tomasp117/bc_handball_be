@@ -14,7 +14,7 @@ services:
       - "3307:3306"
     volumes:
       - mysql_data:/var/lib/mysql
-    command: --default-authentication-plugin=caching_sha2_password
+    command: --default-authentication-plugin=mysql_native_password
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
@@ -27,14 +27,37 @@ services:
     environment:
       PMA_HOST: mysql_db
       MYSQL_ROOT_PASSWORD: pcup_handball_is
+      
+  postgres_db:
+    image: postgres:16
+    container_name: bc_handball_pg
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: devpass
+      POSTGRES_USER: devuser
+      POSTGRES_DB: handball_is
+    ports: [ "5432:5432" ]
+    volumes: [ "pg_data:/var/lib/postgresql/data" ]
 
-  pcup_fe:
-    build:
-      context: ../pcup_fe/pcup_fe
-    container_name: pcup_fe
-    restart: unless-stopped
-    ports:
-      - "3000:80" 
+  pgadmin:
+    image: dpage/pgadmin4
+    depends_on: [ postgres_db ]
+    environment:
+      PGADMIN_DEFAULT_EMAIL: tomasp117@seznam.cz
+      PGADMIN_DEFAULT_PASSWORD: pcup_handball_is
+    ports: [ "5050:80" ]
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+
+# -- production -- 
+  
+#  pcup_fe:
+#    build:
+#      context: ../pcup_fe/pcup_fe
+#    container_name: pcup_fe
+#    restart: unless-stopped
+#    ports:
+#      - "3000:80" 
 
   bc_handball_be:
     volumes:
@@ -50,7 +73,7 @@ services:
       - "5000:8080"
     environment:
       ASPNETCORE_ENVIRONMENT: Production
-      ConnectionStrings__DefaultConnection: "Server=mysql_db;Port=3306;Database=handball_is;User=user;Password=pcup_handball_is"
+      ConnectionStrings__DefaultConnection: "Host=postgres_db;Port=5432;Database=handball_is;User=user;Password=pcup_handball_is"
     entrypoint: >
       sh -c "
       echo 'Waiting for MySQL...' &&
@@ -61,4 +84,6 @@ services:
 
 volumes:
   mysql_data:
-  images_data:    
+  images_data:
+  pg_data:
+  pgadmin_data:

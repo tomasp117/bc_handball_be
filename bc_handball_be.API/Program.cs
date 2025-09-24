@@ -53,9 +53,7 @@ builder.Services.AddControllers().AddJsonOptions(options =>
     options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
 });
 
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseMySql(builder.Configuration.GetConnectionString("DefaultConnection"),
-        new MySqlServerVersion(new Version(8, 0, 34))));
+builder.Services.AddInfrastructure(builder.Configuration);
 
 // Add services to the container.
 builder.Services.AddEndpointsApiExplorer();
@@ -145,9 +143,9 @@ app.UseStaticFiles();
 using (var scope = app.Services.CreateScope()){
     var services = scope.ServiceProvider;
     var context = services.GetRequiredService<ApplicationDbContext>();
+    context.Database.Migrate();
     if (app.Environment.IsDevelopment())
     {
-        context.Database.Migrate();
         SeedData.Initialize(context);
     }
     else

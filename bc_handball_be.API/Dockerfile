@@ -1,31 +1,31 @@
-# Použití ASP.NET runtime pro bìh aplikace
+# Pouï¿½itï¿½ ASP.NET runtime pro bï¿½h aplikace
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 WORKDIR /app
-EXPOSE 5000
+EXPOSE 8080
 
-# Použití .NET SDK pro build aplikace
+# Pouï¿½itï¿½ .NET SDK pro build aplikace
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 
-# Kopírování a obnova závislostí API a Core projektù
+# Kopï¿½rovï¿½nï¿½ a obnova zï¿½vislostï¿½ API a Core projektï¿½
 COPY ["bc_handball_be.API/bc_handball_be.API.csproj", "bc_handball_be.API/"]
 COPY ["bc_handball_be.Core/bc_handball_be.Core.csproj", "bc_handball_be.Core/"]
 RUN dotnet restore "./bc_handball_be.API/bc_handball_be.API.csproj"
 
-# Kopírování celého kódu do kontejneru
+# Kopï¿½rovï¿½nï¿½ celï¿½ho kï¿½du do kontejneru
 COPY . .
 
 # Build API projektu
 WORKDIR "/src/bc_handball_be.API"
 RUN dotnet build "./bc_handball_be.API.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
-# Publikování API projektu
+# Publikovï¿½nï¿½ API projektu
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
 RUN dotnet publish "./bc_handball_be.API.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
-# Final image pro bìh aplikace
+# Final image pro bï¿½h aplikace
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
@@ -34,5 +34,5 @@ RUN mkdir -p wwwroot/images \
     && chmod -R 755 wwwroot \
     && chmod -R 775 wwwroot/images
 
-# Použití CMD místo ENTRYPOINT pro flexibilitu
+# Pouï¿½itï¿½ CMD mï¿½sto ENTRYPOINT pro flexibilitu
 CMD ["dotnet", "bc_handball_be.API.dll", "--urls", "http://0.0.0.0:8080"]

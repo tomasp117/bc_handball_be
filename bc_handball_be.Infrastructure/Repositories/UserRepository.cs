@@ -21,18 +21,49 @@ namespace bc_handball_be.Infrastructure.Repositories
             _context = context;
         }
 
+        // ==================== READ OPERATIONS ====================
+
         public async Task<Login?> GetLoginByUsernameAsync(string username)
         {
             return await _context.Logins
-                .Include(l => l.Person)  // Načteme i osobu
+                .Include(l => l.Person)
                 .FirstOrDefaultAsync(l => l.Username == username);
         }
 
-        public async Task AddUserWithRoleAsync(Person user, Login login, object roleEntity)
+        public async Task<IEnumerable<Person>> GetAllUsersAsync()
         {
-            _context.Persons.Add(user);
+            return await _context.Persons
+                .Include(p => p.Login)
+                .ToListAsync();
+        }
+
+        public async Task<bool> UsernameExistsAsync(string username)
+        {
+            return await _context.Logins.AnyAsync(l => l.Username == username);
+        }
+
+        public async Task<string> GetUserRoleAsync(int personId)
+        {
+            // Check role tables in priority order
+            if (await _context.Admins.AnyAsync(a => a.PersonId == personId)) return "Admin";
+            if (await _context.Coaches.AnyAsync(c => c.PersonId == personId)) return "Coach";
+            if (await _context.Recorders.AnyAsync(r => r.PersonId == personId)) return "Recorder";
+            if (await _context.Referees.AnyAsync(r => r.PersonId == personId)) return "Referee";
+            if (await _context.Players.AnyAsync(p => p.PersonId == personId)) return "Player";
+            if (await _context.ClubAdmins.AnyAsync(ca => ca.PersonId == personId)) return "ClubAdmin";
+
+            return "User";
+        }
+
+        // ==================== WRITE OPERATIONS ====================
+
+        public async Task AddUserWithRoleAsync(Person person, Login login, object roleEntity)
+        {
+            // Add all entities in a single transaction for atomicity
+            _context.Persons.Add(person);
             _context.Logins.Add(login);
 
+            // Add the appropriate role entity based on type
             switch (roleEntity)
             {
                 case Admin admin:
@@ -59,30 +90,5 @@ namespace bc_handball_be.Infrastructure.Repositories
 
             await _context.SaveChangesAsync();
         }
-
-        public async Task<IEnumerable<Person>> GetAllUsersAsync()
-        {
-            return await _context.Persons
-                .Include(p => p.Login) 
-                .ToListAsync();
-        }
-
-        public async Task<string> GetUserRoleAsync(int personId)
-        {
-            if (await _context.Admins.AnyAsync(a => a.PersonId == personId)) return "Admin";
-            if (await _context.Coaches.AnyAsync(c => c.PersonId == personId)) return "Coach";
-            if (await _context.Recorders.AnyAsync(r => r.PersonId == personId)) return "Recorder";
-            if (await _context.Referees.AnyAsync(r => r.PersonId == personId)) return "Referee";
-            if (await _context.Players.AnyAsync(p => p.PersonId == personId)) return "Player";
-            if (await _context.ClubAdmins.AnyAsync(ca => ca.PersonId == personId)) return "ClubAdmin";
-
-            return "User";
-        }
-
-        public async Task<bool> UsernameExistsAsync(string username)
-        {
-            return await _context.Logins.AnyAsync(l => l.Username == username);
-        }
-
     }
 }

@@ -102,11 +102,6 @@ namespace bc_handball_be.Infrastructure.Repositories
             }
         }
 
-        public Task UpdateTeamAsync(Team team)
-        {
-            throw new NotImplementedException();
-        }
-
         public async Task<List<Team>> GetPlaceholderTeamsByCategoryAsync(int categoryId)
         {
             return await _context.Teams

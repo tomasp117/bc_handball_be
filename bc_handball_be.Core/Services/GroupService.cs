@@ -36,14 +36,17 @@ namespace bc_handball_be.Core.Services
 
         public async Task SaveGroupsAsync(IEnumerable<Group> newGroups, int categoryId)
         {
+            _logger.LogInformation("Starting SaveGroupsAsync for category {CategoryId}", categoryId);
 
+            // Business Logic: Check if groups already exist and delete them
             var areExisting = await _groupRepository.GetGroupsByCategoryAsync(categoryId);
             if (areExisting.Any())
             {
-                await _groupRepository.DeleteGroupsAsync(categoryId);
                 _logger.LogWarning("Groups already exist for category {CategoryId}. This will overwrite existing groups.", categoryId);
+                await _groupRepository.DeleteByCategoryIdAsync(categoryId);
             }
 
+            // Business Logic: Filter valid groups (must have at least one team)
             var validGroups = newGroups.Where(g => g.TeamGroups.Any()).ToList();
             if (!validGroups.Any())
             {
@@ -51,15 +54,17 @@ namespace bc_handball_be.Core.Services
                 return;
             }
 
+            // Business Logic: Fetch teams from DB and validate
             _logger.LogInformation("Fetching teams from database for category {CategoryId}", categoryId);
             var teamsFromDb = await _teamRepository.GetTeamsByCategoryAsync(categoryId);
             var teamDictionary = teamsFromDb.ToDictionary(t => t.Id);
 
+            // Business Logic: Validate teams exist and assign them to groups
             foreach (var group in validGroups)
             {
                 group.CategoryId = categoryId;
 
-                // Ověříme, že všechny týmy ve skupinách existují v DB
+                // Validate that all teams in the groups exist in DB
                 group.TeamGroups = group.TeamGroups
                     .Where(tg => teamDictionary.ContainsKey(tg.TeamId))
                     .Select(tg => new TeamGroup
@@ -71,8 +76,10 @@ namespace bc_handball_be.Core.Services
                     .ToList();
             }
 
-            _logger.LogInformation("Saving {Count} groups for category {CategoryId} with {TeamCount} total team-group assignments",validGroups.Count, categoryId, validGroups.Sum(g => g.TeamGroups.Count));
-            await _groupRepository.SaveGroupsAsync(validGroups, categoryId);
+            // Simple repository call: Just add the groups
+            _logger.LogInformation("Saving {Count} groups for category {CategoryId} with {TeamCount} total team-group assignments",
+                validGroups.Count, categoryId, validGroups.Sum(g => g.TeamGroups.Count));
+            await _groupRepository.AddRangeAsync(validGroups);
             _logger.LogInformation("Groups saved successfully for category {CategoryId}", categoryId);
         }
 
@@ -83,13 +90,13 @@ namespace bc_handball_be.Core.Services
 
         public async Task<List<Group>> GetGroupsAsync()
         {
-            var groups = await _groupRepository.GetGroupsAsync();
+            var groups = await _groupRepository.GetAllAsync();
             return groups.ToList();
         }
 
         public async Task<List<GroupStanding>> GetGroupStandingsAsync(int groupId)
         {
-            var matches = await _matchRepository.GetMatchesByGroupIdAsync(groupId);
+            var matches = await _matchRepository.GetByGroupIdAsync(groupId);
             var teamsInGroup = await _teamRepository.GetTeamsByGroupAsync(groupId);
 
             // 1) Globální statistiky
@@ -316,7 +323,15 @@ namespace bc_handball_be.Core.Services
                 groups.Add(group);
             }
 
-            await _groupRepository.SaveGroupsAsync(groups, categoryId);
+            // Business Logic: Delete existing groups before adding new ones
+            var existingGroups = await _groupRepository.GetGroupsByCategoryAsync(categoryId);
+            if (existingGroups.Any())
+            {
+                await _groupRepository.DeleteByCategoryIdAsync(categoryId);
+            }
+
+            // Simple repository call: Add the new groups with placeholder teams
+            await _groupRepository.AddRangeAsync(groups);
 
             // ⛔ Odstranit osiřelé placeholder týmy, které nejsou mezi použitémi
             var allPlaceholderTeams = await _teamRepository.GetPlaceholderTeamsByCategoryAsync(categoryId);
@@ -341,10 +356,14 @@ namespace bc_handball_be.Core.Services
                 _logger.LogWarning("No bracket groups provided for category {CategoryId}", categoryId);
                 return;
             }
+
             _logger.LogInformation("Saving {Count} bracket groups for category {CategoryId}", groups.Count, categoryId);
-            // Ověříme, že všechny týmy ve skupinách existují v DB
+
+            // Business Logic: Fetch teams from DB and validate
             var teamsFromDb = await _teamRepository.GetTeamsByCategoryAsync(categoryId);
             var teamDictionary = teamsFromDb.ToDictionary(t => t.Id);
+
+            // Business Logic: Validate teams exist and assign to groups
             foreach (var group in groups)
             {
                 group.CategoryId = categoryId;
@@ -358,7 +377,16 @@ namespace bc_handball_be.Core.Services
                     })
                     .ToList();
             }
-            await _groupRepository.SaveGroupsAsync(groups, categoryId);
+
+            // Business Logic: Delete existing bracket groups before adding new ones
+            var existingGroups = await _groupRepository.GetGroupsByCategoryAsync(categoryId);
+            if (existingGroups.Any())
+            {
+                await _groupRepository.DeleteByCategoryIdAsync(categoryId);
+            }
+
+            // Simple repository call: Add the bracket groups
+            await _groupRepository.AddRangeAsync(groups);
         }
 
 

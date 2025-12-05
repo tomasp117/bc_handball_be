@@ -22,116 +22,57 @@ namespace bc_handball_be.Infrastructure.Repositories
             _logger = logger;
         }
 
+        // ==================== READ OPERATIONS ====================
+
+        public async Task<Coach?> GetByIdAsync(int coachId)
+        {
+            _logger.LogInformation("Fetching coach with ID {CoachId}", coachId);
+            return await _context.Coaches
+                .Include(c => c.Person)
+                .FirstOrDefaultAsync(c => c.Id == coachId);
+        }
+
         public async Task<Coach?> GetByPersonIdAsync(int personId)
         {
-            try
-            {
-                var coach = await _context.Coaches
-                    .Include(c => c.Team)
-                        .ThenInclude(t => t.Players)
-                            .ThenInclude(p => p.Person)
-                    .Include(c => c.Team)
-                        .ThenInclude(t => t.Category)
-                            .ThenInclude(c => c.TournamentInstance)
-                    .Include(c => c.Team)
-                        .ThenInclude(t => t.Club)
-                    .FirstOrDefaultAsync(c => c.PersonId == personId);
-
-                return coach;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving coach with PersonId {PersonId}", personId);
-                return null;
-            }
+            _logger.LogInformation("Fetching coach with PersonId {PersonId}", personId);
+            return await _context.Coaches
+                .Include(c => c.Team)
+                    .ThenInclude(t => t.Players)
+                        .ThenInclude(p => p.Person)
+                .Include(c => c.Team)
+                    .ThenInclude(t => t.Category)
+                        .ThenInclude(c => c.TournamentInstance)
+                .Include(c => c.Team)
+                    .ThenInclude(t => t.Club)
+                .FirstOrDefaultAsync(c => c.PersonId == personId);
         }
+
+        // ==================== WRITE OPERATIONS ====================
 
         public async Task AddAsync(Coach coach)
         {
             if (coach == null) throw new ArgumentNullException(nameof(coach));
-            try
-            {
-                await _context.Coaches.AddAsync(coach);
-                await _context.SaveChangesAsync();
-                _logger.LogInformation("Coach with ID {CoachId} added successfully.", coach.Id);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error adding coach with ID {CoachId}.", coach.Id);
-                throw;
-            }
+
+            _logger.LogInformation("Adding coach to database");
+            await _context.Coaches.AddAsync(coach);
+            await _context.SaveChangesAsync();
+            _logger.LogInformation("Coach with ID {CoachId} added successfully", coach.Id);
         }
+
+        // ==================== DELETE OPERATIONS ====================
 
         public async Task DeleteAsync(int coachId)
         {
-            try
-            {
-                var coach = await _context.Coaches.FindAsync(coachId);
-                if (coach == null)
-                {
-                    _logger.LogWarning("Attempted to delete non-existing coach with ID {CoachId}", coachId);
-                    return;
-                }
-                _context.Coaches.Remove(coach);
-                await _context.SaveChangesAsync();
-                _logger.LogInformation("Coach with ID {CoachId} deleted successfully.", coachId);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error deleting coach with ID {CoachId}.", coachId);
-                throw;
-            }
-        }
-
-        public async Task DeleteCoachWithPersonAsync(int coachId)
-        {
-            var coach = await _context.Coaches
-                .Include(c => c.Person)
-                .ThenInclude(p => p.Login)
-                .FirstOrDefaultAsync(c => c.Id == coachId);
-
+            _logger.LogInformation("Deleting coach with ID {CoachId}", coachId);
+            var coach = await _context.Coaches.FindAsync(coachId);
             if (coach == null)
-                throw new KeyNotFoundException($"Coach with ID {coachId} not found.");
-
-            using var transaction = await _context.Database.BeginTransactionAsync();
-
-            try
             {
-                if (coach.Person.Login != null)
-                    _context.Logins.Remove(coach.Person.Login);
-
-                _context.Persons.Remove(coach.Person);
-                await _context.SaveChangesAsync();
-
-                await transaction.CommitAsync();
+                _logger.LogWarning("Attempted to delete non-existing coach with ID {CoachId}", coachId);
+                return;
             }
-            catch
-            {
-                await transaction.RollbackAsync();
-                throw;
-            }
-        }
-
-
-        public async Task<Coach> GetByIdAsync(int coachId)
-        {
-            try
-            {
-                var coach = await _context.Coaches
-                    .Include(c => c.Person)
-                    .FirstOrDefaultAsync(c => c.Id == coachId);
-                if (coach == null)
-                {
-                    _logger.LogWarning("Coach with ID {CoachId} not found.", coachId);
-                    throw new KeyNotFoundException($"Coach with ID {coachId} not found.");
-                }
-                return coach;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving coach with ID {CoachId}.", coachId);
-                throw;
-            }
+            _context.Coaches.Remove(coach);
+            await _context.SaveChangesAsync();
+            _logger.LogInformation("Coach with ID {CoachId} deleted successfully", coachId);
         }
     }
 }

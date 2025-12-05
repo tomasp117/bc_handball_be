@@ -1,4 +1,4 @@
-﻿using bc_handball_be.Core.Entities;
+using bc_handball_be.Core.Entities;
 using bc_handball_be.Core.Interfaces.IRepositories;
 using bc_handball_be.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -22,74 +22,91 @@ namespace bc_handball_be.Infrastructure.Repositories
             _logger = logger;
         }
 
-        public async Task CreateLineupsForMatchAsync(
-            int matchId,
-            int homeTeamId, List<int> homePlayerIds,
-            int awayTeamId, List<int> awayPlayerIds)
+        // ==================== READ OPERATIONS ====================
+
+        public async Task<Lineup?> GetByIdAsync(int id)
         {
-            _logger.LogInformation("Repository: Creating lineups for matchId={matchId}, homeTeamId={homeTeamId} (count {homeCount}), awayTeamId={awayTeamId} (count {awayCount})",
-    matchId, homeTeamId, homePlayerIds?.Count ?? -1, awayTeamId, awayPlayerIds?.Count ?? -1);
+            _logger.LogInformation("Fetching lineup with ID {LineupId}", id);
+            return await _context.Lineups
+                .Include(l => l.Players)
+                    .ThenInclude(lp => lp.Player)
+                        .ThenInclude(p => p.Person)
+                .Include(l => l.Team)
+                .FirstOrDefaultAsync(l => l.Id == id);
+        }
 
-            await using var transaction = await _context.Database.BeginTransactionAsync();
-            try
+        public async Task<List<Lineup>> GetByMatchIdAsync(int matchId)
+        {
+            _logger.LogInformation("Fetching lineups for match {MatchId}", matchId);
+            return await _context.Lineups
+                .Include(l => l.Players)
+                    .ThenInclude(lp => lp.Player)
+                        .ThenInclude(p => p.Person)
+                .Include(l => l.Team)
+                .Where(l => l.MatchId == matchId)
+                .ToListAsync();
+        }
+
+        // ==================== WRITE OPERATIONS ====================
+
+        public async Task AddAsync(Lineup lineup)
+        {
+            _logger.LogInformation("Adding lineup for match {MatchId}, team {TeamId}", lineup.MatchId, lineup.TeamId);
+            await _context.Lineups.AddAsync(lineup);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task AddRangeAsync(IEnumerable<Lineup> lineups)
+        {
+            _logger.LogInformation("Adding {Count} lineups to database", lineups.Count());
+            await _context.Lineups.AddRangeAsync(lineups);
+            await _context.SaveChangesAsync();
+        }
+
+        // ==================== DELETE OPERATIONS ====================
+
+        public async Task DeleteAsync(int id)
+        {
+            _logger.LogInformation("Deleting lineup with ID {LineupId}", id);
+            var lineup = await _context.Lineups
+                .Include(l => l.Players)
+                .FirstOrDefaultAsync(l => l.Id == id);
+
+            if (lineup != null)
             {
-                // 1. Smaž existující lineupy (a hráče v nich)
-                var oldLineups = await _context.Lineups
-                    .Where(l => l.MatchId == matchId)
-                    .Include(l => l.Players)
-                    .ToListAsync();
-
-                if (oldLineups.Any())
-                {
-                    foreach (var lineup in oldLineups)
-                    {
-                        _context.LineupPlayers.RemoveRange(lineup.Players);
-                    }
-                    _context.Lineups.RemoveRange(oldLineups);
-                    await _context.SaveChangesAsync();
-                }
-
-                // 2. Nový lineup pro domácí tým
-                var homeLineup = new Lineup
-                {
-                    MatchId = matchId,
-                    TeamId = homeTeamId,
-                };
-                _context.Lineups.Add(homeLineup);
+                _context.LineupPlayers.RemoveRange(lineup.Players);
+                _context.Lineups.Remove(lineup);
                 await _context.SaveChangesAsync();
-
-                var homeLineupPlayers = homePlayerIds.Select(pid => new LineupPlayer
-                {
-                    LineupId = homeLineup.Id,
-                    PlayerId = pid,
-                }).ToList();
-                _context.LineupPlayers.AddRange(homeLineupPlayers);
-
-                // 3. Nový lineup pro hosty
-                var awayLineup = new Lineup
-                {
-                    MatchId = matchId,
-                    TeamId = awayTeamId,
-                };
-                _context.Lineups.Add(awayLineup);
-                await _context.SaveChangesAsync();
-
-                var awayLineupPlayers = awayPlayerIds.Select(pid => new LineupPlayer
-                {
-                    LineupId = awayLineup.Id,
-                    PlayerId = pid,
-                }).ToList();
-                _context.LineupPlayers.AddRange(awayLineupPlayers);
-
-                await _context.SaveChangesAsync();
-
-                await transaction.CommitAsync();
             }
-            catch (Exception)
+            else
             {
-                _logger.LogError("Chyba při vytváření soupisky pro zápas {matchId}", matchId);
-                await transaction.RollbackAsync();
-                throw;
+                _logger.LogWarning("Lineup with ID {LineupId} not found for deletion", id);
+            }
+        }
+
+        public async Task DeleteByMatchIdAsync(int matchId)
+        {
+            _logger.LogInformation("Deleting lineups for match {MatchId}", matchId);
+            var lineups = await _context.Lineups
+                .Include(l => l.Players)
+                .Where(l => l.MatchId == matchId)
+                .ToListAsync();
+
+            if (lineups.Any())
+            {
+                // Delete all lineup players first
+                foreach (var lineup in lineups)
+                {
+                    _context.LineupPlayers.RemoveRange(lineup.Players);
+                }
+                // Then delete the lineups
+                _context.Lineups.RemoveRange(lineups);
+                await _context.SaveChangesAsync();
+                _logger.LogInformation("Deleted {Count} lineups for match {MatchId}", lineups.Count, matchId);
+            }
+            else
+            {
+                _logger.LogWarning("No lineups found to delete for match {MatchId}", matchId);
             }
         }
     }

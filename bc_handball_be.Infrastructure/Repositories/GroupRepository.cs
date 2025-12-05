@@ -1,4 +1,4 @@
-﻿using bc_handball_be.Core.Entities;
+using bc_handball_be.Core.Entities;
 using bc_handball_be.Core.Interfaces.IRepositories;
 using bc_handball_be.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -16,11 +16,13 @@ namespace bc_handball_be.Infrastructure.Repositories
         private readonly ApplicationDbContext _context;
         private readonly ILogger<GroupRepository> _logger;
 
-        public GroupRepository(ApplicationDbContext context, ILogger<GroupRepository> logger)
+        public GroupRepository(ApplicationDbContext context, ILogger<GroupRepository> _logger)
         {
             _context = context;
-            _logger = logger;
+            this._logger = _logger;
         }
+
+        // ==================== READ OPERATIONS ====================
 
         public async Task<IEnumerable<Group>> GetGroupsByCategoryAsync(int categoryId)
         {
@@ -36,88 +38,9 @@ namespace bc_handball_be.Infrastructure.Repositories
 
             _logger.LogInformation("Fetched {Count} groups for category {CategoryId}", groups.Count, categoryId);
             return groups;
-
         }
 
-        public async Task SaveGroupsAsync(IEnumerable<Group> newGroups, int categoryId)
-        {
-            _logger.LogInformation("Starting transaction to save {Count} groups for category {CategoryId}", newGroups.Count(), categoryId);
-
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            try
-            {
-                var newPhaseNames = newGroups.Select(g => g.Phase).Distinct();
-
-                var groupsToDelete = await _context.Groups
-                    .Where(g => g.CategoryId == categoryId && g.Phase != null && newPhaseNames.Contains(g.Phase))
-                    .ToListAsync();
-
-                if (groupsToDelete.Any())
-                {
-                    _context.Groups.RemoveRange(groupsToDelete);
-                    await _context.SaveChangesAsync();
-                    _logger.LogInformation("{Count} groups deleted for category {CategoryId}", groupsToDelete.Count, categoryId);
-                }
-                else
-                {
-                    _logger.LogWarning("No groups found to delete for category {CategoryId}", categoryId);
-                }
-
-                var validGroups = newGroups
-                    .Where(g => g.TeamGroups.Any())
-                    .Select(g => new Group
-                    {
-                        Id = 0,
-                        Name = g.Name,
-                        CategoryId = categoryId,
-                        Phase = g.Phase,
-                        FinalGroup = g.FinalGroup,
-                        TeamGroups = g.TeamGroups,
-                    })
-                    .ToList();
-
-                if (!validGroups.Any())
-                {
-                    _logger.LogWarning("No valid groups to save for category {CategoryId}, rolling back transaction", categoryId);
-                    await transaction.RollbackAsync();
-                    return;
-                }
-
-                _logger.LogInformation("Saving {Count} groups to database", validGroups.Count());
-                await _context.Groups.AddRangeAsync(validGroups);
-                await _context.SaveChangesAsync();
-
-                await transaction.CommitAsync();
-                _logger.LogInformation("Successfully saved {Count} groups for category {CategoryId}", validGroups.Count(), categoryId);
-            }
-            catch (Exception ex)
-            {
-                await transaction.RollbackAsync();
-                _logger.LogError(ex, "Error while saving groups. Transaction rolled back.");
-                throw;
-            }
-        }
-
-        public async Task SaveBracketGroupsAsync(IEnumerable<Group> groups, int categoryId)
-        {
-            foreach (var group in groups)
-            {
-                group.CategoryId = categoryId;
-                group.Id = 0; // nové skupiny
-
-                // validace existence týmů / navázání
-                foreach (var tg in group.TeamGroups)
-                {
-                    _context.Attach(tg.Team);
-                }
-
-                _context.Groups.Add(group);
-            }
-
-            await _context.SaveChangesAsync();
-        }
-
-        public async Task<List<Group>> GetGroupsAsync()
+        public async Task<List<Group>> GetAllAsync()
         {
             _logger.LogInformation("Fetching all groups");
             var groups = await _context.Groups
@@ -128,6 +51,25 @@ namespace bc_handball_be.Infrastructure.Repositories
                 .ToListAsync();
             _logger.LogInformation("Fetched {Count} groups", groups.Count);
             return groups;
+        }
+
+        public async Task<Group?> GetByIdAsync(int id)
+        {
+            _logger.LogInformation("Fetching group with ID {GroupId}", id);
+            return await _context.Groups
+                .Include(g => g.TeamGroups)
+                    .ThenInclude(tg => tg.Team)
+                        .ThenInclude(t => t.Club)
+                .Include(g => g.Category)
+                .FirstOrDefaultAsync(g => g.Id == id);
+        }
+
+        public async Task<List<Group>> GetByPhaseAsync(int categoryId, string phase)
+        {
+            _logger.LogInformation("Fetching groups for category {CategoryId} with phase {Phase}", categoryId, phase);
+            return await _context.Groups
+                .Where(g => g.CategoryId == categoryId && g.Phase == phase)
+                .ToListAsync();
         }
 
         public async Task<List<Group>> GetGroupsWithPlaceholderTeamsAsync(int categoryId)
@@ -143,7 +85,54 @@ namespace bc_handball_be.Infrastructure.Repositories
             return groups;
         }
 
-        public async Task DeleteGroupsAsync(int categoryId)
+        // ==================== WRITE OPERATIONS ====================
+
+        public async Task AddAsync(Group group)
+        {
+            _logger.LogInformation("Adding group {GroupName} for category {CategoryId}", group.Name, group.CategoryId);
+            await _context.Groups.AddAsync(group);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task AddRangeAsync(IEnumerable<Group> groups)
+        {
+            _logger.LogInformation("Adding {Count} groups to database", groups.Count());
+            await _context.Groups.AddRangeAsync(groups);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task UpdateAsync(Group group)
+        {
+            _logger.LogInformation("Updating group {GroupId}", group.Id);
+            _context.Groups.Update(group);
+            await _context.SaveChangesAsync();
+        }
+
+        // ==================== DELETE OPERATIONS ====================
+
+        public async Task DeleteAsync(int id)
+        {
+            _logger.LogInformation("Deleting group with ID {GroupId}", id);
+            var group = await _context.Groups.FindAsync(id);
+            if (group != null)
+            {
+                _context.Groups.Remove(group);
+                await _context.SaveChangesAsync();
+            }
+            else
+            {
+                _logger.LogWarning("Group with ID {GroupId} not found for deletion", id);
+            }
+        }
+
+        public async Task DeleteRangeAsync(IEnumerable<Group> groups)
+        {
+            _logger.LogInformation("Deleting {Count} groups", groups.Count());
+            _context.Groups.RemoveRange(groups);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task DeleteByCategoryIdAsync(int categoryId)
         {
             _logger.LogInformation("Deleting groups for category {CategoryId}", categoryId);
             var groups = await _context.Groups
@@ -160,6 +149,5 @@ namespace bc_handball_be.Infrastructure.Repositories
                 _logger.LogWarning("No groups found to delete for category {CategoryId}", categoryId);
             }
         }
-
     }
 }

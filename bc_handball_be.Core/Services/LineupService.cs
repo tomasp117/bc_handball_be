@@ -1,4 +1,5 @@
-﻿using bc_handball_be.Core.Interfaces.IRepositories;
+﻿using bc_handball_be.Core.Entities;
+using bc_handball_be.Core.Interfaces.IRepositories;
 using bc_handball_be.Core.Interfaces.IServices;
 using Microsoft.Extensions.Logging;
 using System;
@@ -28,37 +29,67 @@ namespace bc_handball_be.Core.Services
 
         public async Task GenerateLineupsForMatchAsync(int matchId)
         {
-            // 1. Načti zápas včetně týmů  
+            _logger.LogInformation("Starting lineup generation for match {MatchId}", matchId);
+
+            // Business Logic: Fetch match and validate
             var match = await _matchService.GetMatchByIdAsync(matchId);
             if (match == null)
                 throw new Exception($"Zápas s ID {matchId} nenalezen.");
 
-            // 2. Načti aktuální hráče v týmu (můžeš upravit podle své struktury)  
+            // Business Logic: Validate team IDs
+            if (!match.HomeTeamId.HasValue || !match.AwayTeamId.HasValue)
+                throw new Exception("Týmové ID musí být vyplněno.");
+
+            // Business Logic: Validate teams have players
             var homePlayers = match.HomeTeam?.Players;
             if (homePlayers == null || !homePlayers.Any())
                 throw new Exception($"Domácí tým s ID {match.HomeTeamId} nemá žádné hráče.");
+
             var awayPlayers = match.AwayTeam?.Players;
             if (awayPlayers == null || !awayPlayers.Any())
                 throw new Exception($"Hostující tým s ID {match.AwayTeamId} nemá žádné hráče.");
 
-            // Fix for CS1503: Convert nullable int to int using null-coalescing operator  
-            if (!match.HomeTeamId.HasValue || !match.AwayTeamId.HasValue)
-                throw new Exception("Týmové ID musí být vyplněno.");
-
             _logger.LogInformation(
-                "Calling CreateLineupsForMatchAsync with matchId={matchId}, homeTeamId={homeTeamId}, awayTeamId={awayTeamId}, homePlayers={homePlayers}, awayPlayers={awayPlayers}",
-                matchId, match.HomeTeamId, match.AwayTeamId,
-                homePlayers != null ? string.Join(",", homePlayers.Select(p => p.Id)) : "null",
-                awayPlayers != null ? string.Join(",", awayPlayers.Select(p => p.Id)) : "null"
-);
-
-            await _lineupRepository.CreateLineupsForMatchAsync(
-                matchId,
-                match.HomeTeamId.Value, 
-                homePlayers.Select(p => p.Id).ToList(),
-                match.AwayTeamId.Value, 
-                awayPlayers.Select(p => p.Id).ToList()
+                "Generating lineups for match {MatchId}: homeTeam={HomeTeamId} ({HomePlayerCount} players), awayTeam={AwayTeamId} ({AwayPlayerCount} players)",
+                matchId, match.HomeTeamId, homePlayers.Count(), match.AwayTeamId, awayPlayers.Count()
             );
+
+            // Business Logic: Delete old lineups if they exist
+            var existingLineups = await _lineupRepository.GetByMatchIdAsync(matchId);
+            if (existingLineups.Any())
+            {
+                _logger.LogInformation("Deleting {Count} existing lineups for match {MatchId}", existingLineups.Count, matchId);
+                await _lineupRepository.DeleteByMatchIdAsync(matchId);
+            }
+
+            // Business Logic: Create home team lineup with players
+            var homeLineup = new Lineup
+            {
+                MatchId = matchId,
+                TeamId = match.HomeTeamId.Value,
+                Players = homePlayers.Select(p => new LineupPlayer
+                {
+                    PlayerId = p.Id
+                }).ToList()
+            };
+
+            // Business Logic: Create away team lineup with players
+            var awayLineup = new Lineup
+            {
+                MatchId = matchId,
+                TeamId = match.AwayTeamId.Value,
+                Players = awayPlayers.Select(p => new LineupPlayer
+                {
+                    PlayerId = p.Id
+                }).ToList()
+            };
+
+            // Simple repository call: Add both lineups
+            _logger.LogInformation("Adding lineups for match {MatchId}", matchId);
+            await _lineupRepository.AddAsync(homeLineup);
+            await _lineupRepository.AddAsync(awayLineup);
+
+            _logger.LogInformation("Successfully generated lineups for match {MatchId}", matchId);
         }
 
 

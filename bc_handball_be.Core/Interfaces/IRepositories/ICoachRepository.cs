@@ -9,10 +9,14 @@ namespace bc_handball_be.Core.Interfaces.IRepositories
 {
     public interface ICoachRepository
     {
+        // Read operations
+        Task<Coach?> GetByIdAsync(int coachId);
         Task<Coach?> GetByPersonIdAsync(int personId);
+
+        // Write operations
         Task AddAsync(Coach coach);
+
+        // Delete operations
         Task DeleteAsync(int coachId);
-        Task<Coach> GetByIdAsync(int coachId);
-        Task DeleteCoachWithPersonAsync(int coachId);
     }
 }

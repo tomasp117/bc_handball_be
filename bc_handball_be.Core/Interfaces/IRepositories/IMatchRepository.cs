@@ -9,22 +9,21 @@ namespace bc_handball_be.Core.Interfaces.IRepositories
 {
     public interface IMatchRepository
     {
-        Task AddMatchAsync(Match match);
-        Task UpdateMatchAsync(Match match);
-        Task AddMatchesAsync(List<Match> matches);
-        Task<List<Match>> GetMatchesByStateAsync(MatchState state);
-        Task<List<Match>> GetMatchesAsync();
-        Task<Match?> GetMatchByIdAsync(int id);
-        Task UpdateMatchesAsync(List<Match> matches);
-        Task SaveAsync();
-        Task<List<Match>> GetMatchesByCategoryIdAsync(int categoryId);
-        Task<List<Match>> GetMatchesByGroupIdAsync(int groupId);
-        Task<List<Match>> GetMatchesByTeamIdAsync(int teamId);
-        Task<List<Match>> GetMatchesForReportAsync();
-        Task<List<Match>> GetMatchesForTimetableAsync();
-        Task<List<Match>>  GetMatchesUnassignedAsync();
+        // Read operations
+        Task<Match?> GetByIdAsync(int id);
+        Task<List<Match>> GetAllAsync();
+        Task<List<Match>> GetByStateAsync(MatchState state);
+        Task<List<Match>> GetByCategoryIdAsync(int categoryId);
+        Task<List<Match>> GetByGroupIdAsync(int groupId);
+        Task<List<Match>> GetByTeamIdAsync(int teamId);
 
-        Task DeleteMatchAsync(int matchId);
+        // Write operations
+        Task AddAsync(Match match);
+        Task AddRangeAsync(IEnumerable<Match> matches);
+        Task UpdateAsync(Match match);
+        Task UpdateRangeAsync(IEnumerable<Match> matches);
 
+        // Delete operations
+        Task DeleteAsync(int matchId);
     }
 }

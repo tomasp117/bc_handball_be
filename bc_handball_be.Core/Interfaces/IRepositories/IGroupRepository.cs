@@ -9,10 +9,21 @@ namespace bc_handball_be.Core.Interfaces.IRepositories
 {
     public interface IGroupRepository
     {
+        // Read operations
         Task<IEnumerable<Group>> GetGroupsByCategoryAsync(int categoryId);
-        Task SaveGroupsAsync(IEnumerable<Group> newGroups, int categoryId);
-        Task<List<Group>> GetGroupsAsync();
+        Task<List<Group>> GetAllAsync();
+        Task<Group?> GetByIdAsync(int id);
+        Task<List<Group>> GetByPhaseAsync(int categoryId, string phase);
         Task<List<Group>> GetGroupsWithPlaceholderTeamsAsync(int categoryId);
-        Task DeleteGroupsAsync(int categoryId);
+
+        // Write operations
+        Task AddAsync(Group group);
+        Task AddRangeAsync(IEnumerable<Group> groups);
+        Task UpdateAsync(Group group);
+
+        // Delete operations
+        Task DeleteAsync(int id);
+        Task DeleteRangeAsync(IEnumerable<Group> groups);
+        Task DeleteByCategoryIdAsync(int categoryId);
     }
 }

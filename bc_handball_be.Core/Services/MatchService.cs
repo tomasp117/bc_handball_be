@@ -375,7 +375,7 @@ namespace bc_handball_be.Core.Services
                 .ToList();
 
             // 9) Uložit a vrátit
-            await _matchRepository.AddMatchesAsync(matches);
+            await _matchRepository.AddRangeAsync(matches);
             return matches;
         }
 
@@ -761,7 +761,7 @@ namespace bc_handball_be.Core.Services
                 DayOfWeek.Sunday,
             };
 
-            var blankMatches = (await _matchRepository.GetMatchesByStateAsync(MatchState.Generated))
+            var blankMatches = (await _matchRepository.GetByStateAsync(MatchState.Generated))
                 .Where(m => m.Category?.Name != mini41?.Name)
                 .Where(m => CourtAllowedForCategory(categoryId, m.Playground, m.Time.DayOfWeek))
                 .OrderBy(m => preferredDaysOrder.IndexOf(m.Time.DayOfWeek)) // řadí nejdřív pátek, pak sobotu, neděli
@@ -813,7 +813,7 @@ namespace bc_handball_be.Core.Services
                             slot.Category = group.Category;
                             slot.State = MatchState.None;
 
-                            await _matchRepository.UpdateMatchAsync(slot);
+                            await _matchRepository.UpdateAsync(slot);
 
                             lastMatchTimeForTeam[homeId] = slot.Time;
                             lastMatchTimeForTeam[awayId] = slot.Time;
@@ -869,7 +869,7 @@ namespace bc_handball_be.Core.Services
                 .ToList();
 
             // 2) Všechny sloty
-            var allSlots = (await _matchRepository.GetMatchesByStateAsync(MatchState.Generated))
+            var allSlots = (await _matchRepository.GetByStateAsync(MatchState.Generated))
                 .OrderBy(s => s.Time)
                 .ToList();
 
@@ -951,7 +951,7 @@ namespace bc_handball_be.Core.Services
                     slot.AwayTeamId = req.Away;
                     slot.GroupId = req.GrpId;
                     slot.State = MatchState.None;
-                    await _matchRepository.UpdateMatchAsync(slot);
+                    await _matchRepository.UpdateAsync(slot);
 
                     lastMatchTime[req.Home] = slot.Time;
                     lastMatchTime[req.Away] = slot.Time;
@@ -1014,19 +1014,27 @@ namespace bc_handball_be.Core.Services
 
         public async Task<List<Match>> GetMatchesAsync()
         {
-            var matches = await _matchRepository.GetMatchesAsync();
+            var matches = await _matchRepository.GetAllAsync();
             return matches;
         }
 
         public async Task<List<Match>> GetMatchesForReportAsync()
         {
-            var matches = await _matchRepository.GetMatchesForReportAsync();
+            // Business Logic: Filter matches by state (None or Pending)
+            var allMatches = await _matchRepository.GetAllAsync();
+            var matches = allMatches
+                .Where(m => m.State == MatchState.None || m.State == MatchState.Pending)
+                .ToList();
             return matches;
         }
 
         public async Task<List<Match>> GetMatchesForTimetableAsync()
         {
-            var matches = await _matchRepository.GetMatchesForTimetableAsync();
+            // Business Logic: Filter matches by state (None or Generated)
+            var allMatches = await _matchRepository.GetAllAsync();
+            var matches = allMatches
+                .Where(m => m.State == MatchState.None || m.State == MatchState.Generated)
+                .ToList();
             return matches;
         }
 
@@ -1035,7 +1043,8 @@ namespace bc_handball_be.Core.Services
             var groups = await _groupService.GetGroupsByCategoryAsync(categoryId);
             var teams = await _teamService.GetTeamsByCategoryAsync(categoryId);
 
-            var allMatches = await _matchRepository.GetMatchesUnassignedAsync();
+            // Business Logic: Get all matches and filter for unassigned ones
+            var allMatches = await _matchRepository.GetAllAsync();
             var realMatches = allMatches
                 .Where(m =>
                     m.HomeTeamId.HasValue
@@ -1083,9 +1092,11 @@ namespace bc_handball_be.Core.Services
 
         public async Task UpdateMatchesAsync(List<Match> assignments)
         {
+            var matchesToUpdate = new List<Match>();
+
             foreach (var assigned in assignments)
             {
-                var match = await _matchRepository.GetMatchByIdAsync(assigned.Id);
+                var match = await _matchRepository.GetByIdAsync(assigned.Id);
                 if (match == null)
                 {
                     _logger.LogWarning("Zápas s ID {Id} nebyl nalezen.", assigned.Id);
@@ -1097,14 +1108,18 @@ namespace bc_handball_be.Core.Services
                 match.GroupId = assigned.GroupId;
                 match.State = match.State == MatchState.Generated ? MatchState.None : match.State;
                 match.SequenceNumber = assigned.SequenceNumber;
+                matchesToUpdate.Add(match);
             }
 
-            await _matchRepository.SaveAsync();
+            if (matchesToUpdate.Any())
+            {
+                await _matchRepository.UpdateRangeAsync(matchesToUpdate);
+            }
         }
 
         public async Task<Match> GetMatchByIdAsync(int id)
         {
-            var match = await _matchRepository.GetMatchByIdAsync(id);
+            var match = await _matchRepository.GetByIdAsync(id);
             if (match == null)
             {
                 _logger.LogWarning("Zápas s ID {Id} nebyl nalezen.", id);
@@ -1115,31 +1130,31 @@ namespace bc_handball_be.Core.Services
 
         public async Task UpdateMatchAsync(Match match)
         {
-            await _matchRepository.UpdateMatchAsync(match);
+            await _matchRepository.UpdateAsync(match);
         }
 
         public async Task<List<Match>> GetMatchesByCategoryIdAsync(int categoryId)
         {
-            var matches = await _matchRepository.GetMatchesByCategoryIdAsync(categoryId);
+            var matches = await _matchRepository.GetByCategoryIdAsync(categoryId);
             return matches;
         }
 
         public async Task<List<Match>> GetMatchesByGroupIdAsync(int groupId)
         {
-            var matches = await _matchRepository.GetMatchesByGroupIdAsync(groupId);
+            var matches = await _matchRepository.GetByGroupIdAsync(groupId);
             return matches;
         }
 
         public async Task<List<Match>> GetMatchesByTeamIdAsync(int teamId)
         {
-            var matches = await _matchRepository.GetMatchesByTeamIdAsync(teamId);
+            var matches = await _matchRepository.GetByTeamIdAsync(teamId);
             return matches;
         }
 
         public async Task<List<Match>> GetGeneratedSlotsAsync(int edition)
         {
-            // předpokládám, že repository umí filtrovat podle edice + stavu
-            return (await _matchRepository.GetMatchesByStateAsync(MatchState.Generated))
+            // Business Logic: Filter generated matches (slots) that have no category
+            return (await _matchRepository.GetByStateAsync(MatchState.Generated))
                 .Where(m => m.Category == null)
                 .ToList();
         }
@@ -1155,16 +1170,16 @@ namespace bc_handball_be.Core.Services
                 AwayScore = 0,
                 State = MatchState.Generated,
             };
-            await _matchRepository.AddMatchAsync(slot);
+            await _matchRepository.AddAsync(slot);
             return slot;
         }
 
         public async Task DeleteSlotAsync(int slotId)
         {
-            var slot = await _matchRepository.GetMatchByIdAsync(slotId);
+            var slot = await _matchRepository.GetByIdAsync(slotId);
             if (slot == null)
                 throw new KeyNotFoundException($"Slot {slotId} not found");
-            await _matchRepository.DeleteMatchAsync(slot.Id);
+            await _matchRepository.DeleteAsync(slot.Id);
         }
     }
 }

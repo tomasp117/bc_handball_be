@@ -14,16 +14,11 @@ namespace bc_handball_be.Core.Interfaces.IServices
         Task<Team?> GetTeamByIdAsync(int id);
         Task<List<Team>> GetTeamsByIdAsync(List<int> ids);
         Task<List<Team>> GetTeamsByCategoryAsync(int categoryId);
-        Task AddTeamAsync(Team team);
-        Task UpdateTeamAsync(Team team);
-        Task DeleteTeamAsync(int id);
-        //Task<IEnumerable<Group>> AssignTeamsToGroupsAsync(IEnumerable<TeamWithAttributes> teamsWithAttributes, int groupCount, int categoryId);
-        //Task<(IEnumerable<Group> Groups, int TotalMatches, double AvgMatchesPerTeam)> AssignTeamsToGroupsAsync(IEnumerable<TeamWithAttributes> teamsWithAttributes, int groupCount, int categoryId);
-        //Task<IEnumerable<GroupAssignmentVariant>> AssignTeamsToGroupsVariantsAsync(IEnumerable<TeamWithAttributes> teamsWithAttributes, int categoryId);
-        Task<List<GroupAssignmentVariant>> AssignTeamsToGroupsAsync(List<TeamWithAttributes> teamsWithAttributes, int categoryId);
         Task<List<Team>> GetTeamsByGroupAsync(int groupId);
         Task<List<Team>> GetTeamsByInstanceIdAsync(int instanceId);
+        Task AddTeamAsync(Team team);
+        Task DeleteTeamAsync(int id);
+        Task<List<GroupAssignmentVariant>> AssignTeamsToGroupsAsync(List<TeamWithAttributes> teamsWithAttributes, int categoryId);
         Task<bool> ExistsAsync(string teamName, int clubId, int tournamentInstanceId);
-
     }
 }

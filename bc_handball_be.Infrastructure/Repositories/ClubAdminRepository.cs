@@ -16,69 +16,31 @@ namespace bc_handball_be.Infrastructure.Repositories
     {
         private readonly ApplicationDbContext _context;
         private readonly ILogger<ClubAdminRepository> _logger;
+
         public ClubAdminRepository(ApplicationDbContext context, ILogger<ClubAdminRepository> logger)
         {
             _context = context;
             _logger = logger;
         }
-        
-        public async Task<ClubAdmin> GetByPersonIdAsync(int personId)
+
+        // ==================== READ OPERATIONS ====================
+
+        public async Task<ClubAdmin?> GetByPersonIdAsync(int personId)
         {
-            try
-            {
-                var clubAdmin = await _context.ClubAdmins
-                    .Include(ca => ca.Club)
-                        .ThenInclude(club => club.Teams)
-                            .ThenInclude(team => team.Players)
-                                .ThenInclude(player => player.Person)
-                    .Include(ca => ca.Club)
-                        .ThenInclude(club => club.Teams)
-                            .ThenInclude(team => team.Coach)
-                                .ThenInclude(coach => coach.Person)
-                    .Include(ca => ca.Club)
-                        .ThenInclude(club => club.Teams)
-                            .ThenInclude(team => team.Category)
-                    .Include(ca => ca.Club)
-                        .ThenInclude(club => club.Teams)
-                            .ThenInclude(team => team.TournamentInstance)
-                    .Include(ca => ca.Person)
-                    .FirstOrDefaultAsync(ca => ca.PersonId == personId);
-
-                if (clubAdmin == null)
-                {
-                    _logger.LogWarning("ClubAdmin with PersonId {PersonId} not found", personId);
-                    return null;
-                }
-
-                return clubAdmin;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving coach with PersonId {PersonId}", personId);
-                return null;
-            }
+            _logger.LogInformation("Fetching ClubAdmin with PersonId {PersonId}", personId);
+            return await _context.ClubAdmins
+                .Include(ca => ca.Club)
+                .Include(ca => ca.Person)
+                .FirstOrDefaultAsync(ca => ca.PersonId == personId);
         }
 
-        public async Task<ClubAdmin> GetByClubIdAsync(int clubId)
+        public async Task<ClubAdmin?> GetByClubIdAsync(int clubId)
         {
-            try
-            {
-                var clubAdmin = await _context.ClubAdmins
-                    .Include(ca => ca.Person)
-                    .Include(ca => ca.Club)
-                    .FirstOrDefaultAsync(ca => ca.ClubId == clubId);
-                if (clubAdmin == null)
-                {
-                    _logger.LogWarning("ClubAdmin with ClubId {ClubId} not found", clubId);
-                    return null;
-                }
-                return clubAdmin;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving ClubAdmin with ClubId {ClubId}", clubId);
-                return null;
-            }
+            _logger.LogInformation("Fetching ClubAdmin with ClubId {ClubId}", clubId);
+            return await _context.ClubAdmins
+                .Include(ca => ca.Person)
+                .Include(ca => ca.Club)
+                .FirstOrDefaultAsync(ca => ca.ClubId == clubId);
         }
     }
 }

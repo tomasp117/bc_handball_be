@@ -148,11 +148,6 @@ namespace bc_handball_be.Core.Services
             }
         }
 
-        public Task UpdateTeamAsync(Team team)
-        {
-            throw new NotImplementedException();
-        }
-
         public async Task<List<Team>> GetTeamsByIdAsync(List<int> ids)
         {
             _logger.LogInformation("Fetching teams by IDs: {Ids}", string.Join(", ", ids));

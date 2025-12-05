@@ -10,11 +10,13 @@ namespace bc_handball_be.Core.Interfaces.IRepositories
 {
     public interface IUserRepository
     {
+        // Read operations
         Task<Login?> GetLoginByUsernameAsync(string username);
-        //Task AddUserAsync(Person user, string username, string password);
-        Task AddUserWithRoleAsync(Person user, Login login, object roleEntity);
         Task<IEnumerable<Person>> GetAllUsersAsync();
-        Task<string> GetUserRoleAsync(int personId);
         Task<bool> UsernameExistsAsync(string username);
+        Task<string> GetUserRoleAsync(int personId);
+
+        // Write operations
+        Task AddUserWithRoleAsync(Person person, Login login, object roleEntity);
     }
 }

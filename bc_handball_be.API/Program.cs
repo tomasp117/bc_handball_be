@@ -1,4 +1,5 @@
 using bc_handball_be.API.Mapping;
+using bc_handball_be.API.Middleware;
 using bc_handball_be.Infrastructure;
 
 using Microsoft.EntityFrameworkCore;
@@ -59,6 +60,21 @@ builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
+    c.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "BC Handball API",
+        Version = "v1",
+        Description = "API for handball tournament management system"
+    });
+
+    // Include XML comments for better Swagger documentation
+    var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    if (File.Exists(xmlPath))
+    {
+        c.IncludeXmlComments(xmlPath);
+    }
+
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Description = "Zadejte JWT token (vcetne 'Bearer ' pred nim)",
@@ -129,6 +145,10 @@ if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+// Global exception handler - must be early in pipeline
+app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
+
 app.UseCors("AllowFrontend");
 if (!app.Environment.IsProduction())
 {

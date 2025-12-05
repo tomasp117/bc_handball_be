@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(do sed -i 's/namespace bc_handball_be.API.DTOs/namespace bc_handball_be.API.DTOs.Matches/' \"$file\")",
+      "Bash(do sed -i 's/namespace bc_handball_be.API.DTOs/namespace bc_handball_be.API.DTOs.Groups/' \"$file\")",
+      "Bash(do sed -i 's/namespace bc_handball_be.API.DTOs.GroupBrackets/namespace bc_handball_be.API.DTOs.Groups.Brackets/' \"$file\")",
+      "Bash(do sed -i 's/namespace bc_handball_be.API.DTOs/namespace bc_handball_be.API.DTOs.Players/' \"$file\")",
+      "Bash(do sed -i 's/namespace bc_handball_be.API.DTOs/namespace bc_handball_be.API.DTOs.Lineups/' \"$file\")",
+      "Bash(do sed -i 's/namespace bc_handball_be.API.DTOs/namespace bc_handball_be.API.DTOs.Coaches/' \"$file\")",
+      "Bash(do sed -i 's/namespace bc_handball_be.API.DTOs/namespace bc_handball_be.API.DTOs.Clubs/' \"$file\")",
+      "Bash(do sed -i 's/namespace bc_handball_be.API.DTOs/namespace bc_handball_be.API.DTOs.Categories/' \"$file\")",
+      "Bash(do sed -i 's/namespace bc_handball_be.API.DTOs/namespace bc_handball_be.API.DTOs.Tournaments/' \"$file\")",
+      "Bash(do sed -i 's/namespace bc_handball_be.API.DTOs/namespace bc_handball_be.API.DTOs.Persons/' \"$file\")",
+      "Bash(do sed -i 's/namespace bc_handball_be.API.DTOs/namespace bc_handball_be.API.DTOs.Referees/' \"$file\")",
+      "Bash(do sed -i 's/namespace bc_handball_be.API.DTOs/namespace bc_handball_be.API.DTOs.Events/' \"$file\")",
+      "Bash(do sed -i 's/namespace bc_handball_be.API.DTOs/namespace bc_handball_be.API.DTOs.Auth/' \"$file\")",
+      "Bash(do sed -i 's|using bc_handball_be.API.DTOs;|using bc_handball_be.API.DTOs.Auth;\\nusing bc_handball_be.API.DTOs.Categories;\\nusing bc_handball_be.API.DTOs.Clubs;\\nusing bc_handball_be.API.DTOs.Coaches;\\nusing bc_handball_be.API.DTOs.Events;\\nusing bc_handball_be.API.DTOs.Groups;\\nusing bc_handball_be.API.DTOs.Groups.Brackets;\\nusing bc_handball_be.API.DTOs.Lineups;\\nusing bc_handball_be.API.DTOs.Matches;\\nusing bc_handball_be.API.DTOs.Persons;\\nusing bc_handball_be.API.DTOs.Players;\\nusing bc_handball_be.API.DTOs.Referees;\\nusing bc_handball_be.API.DTOs.Teams;\\nusing bc_handball_be.API.DTOs.Tournaments;|' \"$file\")",
+      "Bash(dotnet build:*)",
+      "Bash(bash /tmp/add_dto_usings.sh:*)",
+      "Bash(bash:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

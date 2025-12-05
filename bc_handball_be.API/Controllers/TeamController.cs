@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
-using bc_handball_be.API.DTOs;
+using bc_handball_be.API.DTOs.Matches;
+using bc_handball_be.API.DTOs.Teams;
 using bc_handball_be.Core.Entities;
 using bc_handball_be.Core.Interfaces.IServices;
 using bc_handball_be.Core.Services.Models;
@@ -8,6 +9,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace bc_handball_be.API.Controllers;
 
+/// <summary>
+/// Handles team management operations including CRUD, group assignments, and match scheduling.
+/// </summary>
 [Route("api/")]
 [ApiController]
 public class TeamController : ControllerBase
@@ -36,7 +40,18 @@ public class TeamController : ControllerBase
         _mapper = mapper;
     }
 
+    /// <summary>
+    /// Gets all teams for a specific category formatted for group assignment.
+    /// </summary>
+    /// <param name="category">The category ID to fetch teams for.</param>
+    /// <returns>List of teams with group assignment information.</returns>
+    /// <response code="200">Returns the list of teams.</response>
+    /// <response code="400">If category ID is missing.</response>
+    /// <response code="404">If no teams found for the category.</response>
     [HttpGet("teams/group-assign")]
+    [ProducesResponseType(typeof(List<TeamGroupAssignDTO>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<List<TeamGroupAssignDTO>>> GetTeamsByCategoryGroupAssign(
         [FromQuery] int? category
     )
@@ -67,7 +82,16 @@ public class TeamController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Gets all teams for a specific category.
+    /// </summary>
+    /// <param name="category">The category ID to fetch teams for.</param>
+    /// <returns>List of teams in the category.</returns>
+    /// <response code="200">Returns the list of teams.</response>
+    /// <response code="400">If category ID is missing.</response>
     [HttpGet("teams")]
+    [ProducesResponseType(typeof(List<TeamGroupAssignDTO>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<List<TeamGroupAssignDTO>>> GetTeamsByCategory(
         [FromQuery] int? category
     )
@@ -149,10 +173,10 @@ public class TeamController : ControllerBase
                                 ?? 1,
                             IsGirls =
                                 enrichedTeams.FirstOrDefault(t => t.Team.Id == team.Id)?.IsGirls
-                                ?? false,
+                                ?? false
                         })
-                        .ToList(),
-                }),
+                        .ToList()
+                })
             });
 
             return Ok(response);
@@ -283,7 +307,7 @@ public class TeamController : ControllerBase
                     Name = dto.Name,
                     ClubId = club.Id,
                     CategoryId = category.Id,
-                    TournamentInstanceId = dto.TournamentInstanceId,
+                    TournamentInstanceId = dto.TournamentInstanceId
                 };
 
                 // 5. Ulož
@@ -306,7 +330,7 @@ public class TeamController : ControllerBase
             {
                 Imported = imported,
                 Skipped = skipped,
-                Failed = failed,
+                Failed = failed
             }
         );
     }

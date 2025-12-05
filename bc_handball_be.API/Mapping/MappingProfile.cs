@@ -1,6 +1,18 @@
 ﻿using AutoMapper;
-using bc_handball_be.API.DTOs;
-using bc_handball_be.API.DTOs.GroupBrackets;
+using bc_handball_be.API.DTOs.Auth;
+using bc_handball_be.API.DTOs.Categories;
+using bc_handball_be.API.DTOs.Clubs;
+using bc_handball_be.API.DTOs.Coaches;
+using bc_handball_be.API.DTOs.Events;
+using bc_handball_be.API.DTOs.Groups;
+using bc_handball_be.API.DTOs.Groups.Brackets;
+using bc_handball_be.API.DTOs.Lineups;
+using bc_handball_be.API.DTOs.Matches;
+using bc_handball_be.API.DTOs.Persons;
+using bc_handball_be.API.DTOs.Players;
+using bc_handball_be.API.DTOs.Referees;
+using bc_handball_be.API.DTOs.Teams;
+using bc_handball_be.API.DTOs.Tournaments;
 using bc_handball_be.Core.Entities;
 using bc_handball_be.Core.Entities.Actors.sub;
 using bc_handball_be.Core.Entities.Actors.super;
@@ -85,7 +97,7 @@ namespace bc_handball_be.API.Mapping
 
             
 
-            CreateMap<CreateCoachDTO, Coach>()
+            CreateMap<CoachCreateDTO, Coach>()
                 .ForMember(dest => dest.Person, opt => opt.MapFrom(src => src)) // použije mapování výše
                 .ForMember(dest => dest.TeamId, opt => opt.MapFrom(src => src.TeamId))
                 //.ForMember(dest => dest.CategoryId, opt => opt.MapFrom(src => src.CategoryId))
@@ -100,9 +112,9 @@ namespace bc_handball_be.API.Mapping
                 .ForMember(dest => dest.Stats, opt => opt.MapFrom(src => src.Stats));
                 //.ForMember(dest => dest.Voting, opt => opt.MapFrom(src => src.Voting));
 
-            CreateMap<CategoryPostDTO, Category>();
+            CreateMap<CategoryCreateDTO, Category>();
 
-            CreateMap<Category, CategoryPostDTO>();
+            CreateMap<Category, CategoryCreateDTO>();
 
             CreateMap<CategoryDTO, Category>()
                 .ForMember(dest => dest.Matches, opt => opt.Ignore())
@@ -136,10 +148,10 @@ namespace bc_handball_be.API.Mapping
                 .ForMember(dest => dest.ClubId, opt => opt.MapFrom(src => src.ClubId))
                 .ForMember(dest => dest.Person, opt => opt.MapFrom(src => src.Person));
 
-            CreateMap<CreateClubAdminDTO, ClubAdmin>()
-                .ForMember(dest => dest.Person, opt => opt.MapFrom(src => src)); 
-            
-            CreateMap<CreateClubAdminDTO, Person>()
+            CreateMap<ClubAdminCreateDTO, ClubAdmin>()
+                .ForMember(dest => dest.Person, opt => opt.MapFrom(src => src));
+
+            CreateMap<ClubAdminCreateDTO, Person>()
                 .ForMember(dest => dest.Login, opt => opt.MapFrom(src => new Login { Username = src.Username }))
                 .ForMember(dest => dest.FirstName, opt => opt.MapFrom(src => src.FirstName))
                 .ForMember(dest => dest.LastName, opt => opt.MapFrom(src => src.LastName))
@@ -260,11 +272,11 @@ namespace bc_handball_be.API.Mapping
             CreateMap<Person, PersonDetailDTO>()
                 .IncludeBase<Person, PersonDTO>();
 
-            CreateMap<CreateCoachDTO, Person>()
+            CreateMap<CoachCreateDTO, Person>()
                 .ForMember(dest => dest.Login, opt => opt.MapFrom(src => new Login
                 {
                     Username = src.Username,
-                    Password = "", 
+                    Password = "",
                     Salt = ""
                 }));
 

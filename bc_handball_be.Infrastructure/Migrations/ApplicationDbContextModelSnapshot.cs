@@ -2,7 +2,6 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using bc_handball_be.Infrastructure.Persistence;
@@ -12,14 +11,13 @@ using bc_handball_be.Infrastructure.Persistence;
 namespace bc_handball_be.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250923165710_InitialPg")]
-    partial class InitialPg
+    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
     {
-        /// <inheritdoc />
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
+        protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
+                .HasDefaultSchema("handball_is")
                 .HasAnnotation("ProductVersion", "8.0.11")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
@@ -41,7 +39,7 @@ namespace bc_handball_be.Infrastructure.Migrations
                     b.HasIndex("PersonId")
                         .IsUnique();
 
-                    b.ToTable("Admin", (string)null);
+                    b.ToTable("Admin", "handball_is");
                 });
 
             modelBuilder.Entity("bc_handball_be.Core.Entities.Actors.sub.ClubAdmin", b =>
@@ -66,7 +64,7 @@ namespace bc_handball_be.Infrastructure.Migrations
                     b.HasIndex("PersonId")
                         .IsUnique();
 
-                    b.ToTable("ClubAdmin", (string)null);
+                    b.ToTable("ClubAdmin", "handball_is");
                 });
 
             modelBuilder.Entity("bc_handball_be.Core.Entities.Actors.sub.Coach", b =>
@@ -93,7 +91,7 @@ namespace bc_handball_be.Infrastructure.Migrations
                     b.HasIndex("TeamId")
                         .IsUnique();
 
-                    b.ToTable("Coach", (string)null);
+                    b.ToTable("Coach", "handball_is");
                 });
 
             modelBuilder.Entity("bc_handball_be.Core.Entities.Actors.sub.Player", b =>
@@ -142,7 +140,7 @@ namespace bc_handball_be.Infrastructure.Migrations
 
                     b.HasIndex("TeamId");
 
-                    b.ToTable("Player", (string)null);
+                    b.ToTable("Player", "handball_is");
                 });
 
             modelBuilder.Entity("bc_handball_be.Core.Entities.Actors.sub.Recorder", b =>
@@ -161,7 +159,7 @@ namespace bc_handball_be.Infrastructure.Migrations
                     b.HasIndex("PersonId")
                         .IsUnique();
 
-                    b.ToTable("Recorder", (string)null);
+                    b.ToTable("Recorder", "handball_is");
                 });
 
             modelBuilder.Entity("bc_handball_be.Core.Entities.Actors.sub.Referee", b =>
@@ -183,7 +181,7 @@ namespace bc_handball_be.Infrastructure.Migrations
                     b.HasIndex("PersonId")
                         .IsUnique();
 
-                    b.ToTable("Referee", (string)null);
+                    b.ToTable("Referee", "handball_is");
                 });
 
             modelBuilder.Entity("bc_handball_be.Core.Entities.Actors.super.Person", b =>
@@ -216,7 +214,7 @@ namespace bc_handball_be.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Person", (string)null);
+                    b.ToTable("Person", "handball_is");
                 });
 
             modelBuilder.Entity("bc_handball_be.Core.Entities.Category", b =>
@@ -238,7 +236,7 @@ namespace bc_handball_be.Infrastructure.Migrations
 
                     b.HasIndex("TournamentInstanceId");
 
-                    b.ToTable("Category", (string)null);
+                    b.ToTable("Category", "handball_is");
                 });
 
             modelBuilder.Entity("bc_handball_be.Core.Entities.Club", b =>
@@ -256,6 +254,9 @@ namespace bc_handball_be.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("ICO")
+                        .HasColumnType("text");
+
                     b.Property<bool?>("IsPlaceholder")
                         .HasColumnType("boolean");
 
@@ -270,12 +271,91 @@ namespace bc_handball_be.Infrastructure.Migrations
                     b.Property<string>("State")
                         .HasColumnType("text");
 
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("Website")
                         .HasColumnType("text");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Club", (string)null);
+                    b.ToTable("Club", "handball_is");
+                });
+
+            modelBuilder.Entity("bc_handball_be.Core.Entities.ClubRegistration", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("ApprovedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<float>("CalculatedFee")
+                        .HasColumnType("numeric");
+
+                    b.Property<int>("ClubId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("DenialReason")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("DeniedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("PackageACount")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("PackageBCount")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("SubmittedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("TournamentInstanceId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClubId")
+                        .IsUnique();
+
+                    b.HasIndex("TournamentInstanceId");
+
+                    b.ToTable("ClubRegistration", "handball_is");
+                });
+
+            modelBuilder.Entity("bc_handball_be.Core.Entities.ClubRegistrationCategory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CategoryId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ClubRegistrationId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("TeamCount")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CategoryId");
+
+                    b.HasIndex("ClubRegistrationId");
+
+                    b.ToTable("ClubRegistrationCategory", "handball_is");
                 });
 
             modelBuilder.Entity("bc_handball_be.Core.Entities.Event", b =>
@@ -313,7 +393,7 @@ namespace bc_handball_be.Infrastructure.Migrations
 
                     b.HasIndex("MatchId");
 
-                    b.ToTable("Event", (string)null);
+                    b.ToTable("Event", "handball_is");
                 });
 
             modelBuilder.Entity("bc_handball_be.Core.Entities.Group", b =>
@@ -341,7 +421,7 @@ namespace bc_handball_be.Infrastructure.Migrations
 
                     b.HasIndex("CategoryId");
 
-                    b.ToTable("Group", (string)null);
+                    b.ToTable("Group", "handball_is");
                 });
 
             modelBuilder.Entity("bc_handball_be.Core.Entities.Lineup", b =>
@@ -364,7 +444,7 @@ namespace bc_handball_be.Infrastructure.Migrations
 
                     b.HasIndex("TeamId");
 
-                    b.ToTable("Lineup", (string)null);
+                    b.ToTable("Lineup", "handball_is");
                 });
 
             modelBuilder.Entity("bc_handball_be.Core.Entities.LineupPlayer", b =>
@@ -387,7 +467,7 @@ namespace bc_handball_be.Infrastructure.Migrations
 
                     b.HasIndex("PlayerId");
 
-                    b.ToTable("LineupPlayer", (string)null);
+                    b.ToTable("LineupPlayer", "handball_is");
                 });
 
             modelBuilder.Entity("bc_handball_be.Core.Entities.Login", b =>
@@ -418,7 +498,7 @@ namespace bc_handball_be.Infrastructure.Migrations
                     b.HasIndex("PersonId")
                         .IsUnique();
 
-                    b.ToTable("Login", (string)null);
+                    b.ToTable("Login", "handball_is");
                 });
 
             modelBuilder.Entity("bc_handball_be.Core.Entities.Match", b =>
@@ -480,7 +560,7 @@ namespace bc_handball_be.Infrastructure.Migrations
 
                     b.HasIndex("MainRefereeId");
 
-                    b.ToTable("Match", (string)null);
+                    b.ToTable("Match", "handball_is");
                 });
 
             modelBuilder.Entity("bc_handball_be.Core.Entities.Team", b =>
@@ -515,7 +595,7 @@ namespace bc_handball_be.Infrastructure.Migrations
 
                     b.HasIndex("TournamentInstanceId");
 
-                    b.ToTable("Team", (string)null);
+                    b.ToTable("Team", "handball_is");
                 });
 
             modelBuilder.Entity("bc_handball_be.Core.Entities.TeamGroup", b =>
@@ -530,7 +610,7 @@ namespace bc_handball_be.Infrastructure.Migrations
 
                     b.HasIndex("GroupId");
 
-                    b.ToTable("TeamGroup", (string)null);
+                    b.ToTable("TeamGroup", "handball_is");
                 });
 
             modelBuilder.Entity("bc_handball_be.Core.Entities.Tournament", b =>
@@ -547,7 +627,7 @@ namespace bc_handball_be.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Tournament", (string)null);
+                    b.ToTable("Tournament", "handball_is");
                 });
 
             modelBuilder.Entity("bc_handball_be.Core.Entities.TournamentInstance", b =>
@@ -574,7 +654,7 @@ namespace bc_handball_be.Infrastructure.Migrations
 
                     b.HasIndex("TournamentId");
 
-                    b.ToTable("TournamentInstance", (string)null);
+                    b.ToTable("TournamentInstance", "handball_is");
                 });
 
             modelBuilder.Entity("bc_handball_be.Core.Entities.Actors.sub.Admin", b =>
@@ -683,6 +763,44 @@ namespace bc_handball_be.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("TournamentInstance");
+                });
+
+            modelBuilder.Entity("bc_handball_be.Core.Entities.ClubRegistration", b =>
+                {
+                    b.HasOne("bc_handball_be.Core.Entities.Club", "Club")
+                        .WithOne("ClubRegistration")
+                        .HasForeignKey("bc_handball_be.Core.Entities.ClubRegistration", "ClubId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("bc_handball_be.Core.Entities.TournamentInstance", "TournamentInstance")
+                        .WithMany("ClubRegistrations")
+                        .HasForeignKey("TournamentInstanceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Club");
+
+                    b.Navigation("TournamentInstance");
+                });
+
+            modelBuilder.Entity("bc_handball_be.Core.Entities.ClubRegistrationCategory", b =>
+                {
+                    b.HasOne("bc_handball_be.Core.Entities.Category", "Category")
+                        .WithMany("ClubRegistrationCategories")
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("bc_handball_be.Core.Entities.ClubRegistration", "ClubRegistration")
+                        .WithMany("CategoryTeamCounts")
+                        .HasForeignKey("ClubRegistrationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Category");
+
+                    b.Navigation("ClubRegistration");
                 });
 
             modelBuilder.Entity("bc_handball_be.Core.Entities.Event", b =>
@@ -876,6 +994,8 @@ namespace bc_handball_be.Infrastructure.Migrations
 
             modelBuilder.Entity("bc_handball_be.Core.Entities.Category", b =>
                 {
+                    b.Navigation("ClubRegistrationCategories");
+
                     b.Navigation("Groups");
 
                     b.Navigation("Stats");
@@ -885,7 +1005,14 @@ namespace bc_handball_be.Infrastructure.Migrations
                 {
                     b.Navigation("ClubAdmin");
 
+                    b.Navigation("ClubRegistration");
+
                     b.Navigation("Teams");
+                });
+
+            modelBuilder.Entity("bc_handball_be.Core.Entities.ClubRegistration", b =>
+                {
+                    b.Navigation("CategoryTeamCounts");
                 });
 
             modelBuilder.Entity("bc_handball_be.Core.Entities.Group", b =>
@@ -930,6 +1057,8 @@ namespace bc_handball_be.Infrastructure.Migrations
             modelBuilder.Entity("bc_handball_be.Core.Entities.TournamentInstance", b =>
                 {
                     b.Navigation("Categories");
+
+                    b.Navigation("ClubRegistrations");
 
                     b.Navigation("Teams");
                 });

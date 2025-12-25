@@ -15,6 +15,7 @@ namespace bc_handball_be.Core.Entities
         public List<Group> Groups { get; set; } = new List<Group>();
         //public List<Coach> Voting { get; set; } = new List<Coach>();
         public List<Player> Stats { get; set; } = new List<Player>();
+        public ICollection<ClubRegistrationCategory> ClubRegistrationCategories { get; set; } = new List<ClubRegistrationCategory>();
 
         // Foreign keys
         public int TournamentInstanceId { get; set; }

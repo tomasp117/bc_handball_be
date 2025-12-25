@@ -17,6 +17,8 @@ namespace bc_handball_be.Infrastructure
                 opt.UseNpgsql(configuration.GetConnectionString("DefaultConnection"),
                     npgsql =>
                     {
+                        // Use handball_is schema for migrations history table
+                        npgsql.MigrationsHistoryTable("__EFMigrationsHistory", "handball_is");
                         // např. mapování DateOnly/TimeOnly, timeouts apod.
                         // npgsql.EnableRetryOnFailure();
                     }));

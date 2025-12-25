@@ -11,6 +11,10 @@ namespace bc_handball_be.Core.Entities
         public string Email { get; set; } = string.Empty;
         public string? Address { get; set; }
 
+        // Registration fields
+        public string? ICO { get; set; } // Tax ID
+        public ClubStatus Status { get; set; } = ClubStatus.Pending;
+
         public ClubAdmin? ClubAdmin { get; set; } = null!;
 
         public string? State { get; set; }
@@ -18,9 +22,16 @@ namespace bc_handball_be.Core.Entities
 
         public bool? IsPlaceholder { get; set; } = false;
 
-
         // Navigation properties
         public ICollection<Team> Teams { get; set; } = new List<Team>();
+        public ClubRegistration? ClubRegistration { get; set; }
+    }
 
+    public enum ClubStatus
+    {
+        Pending, // Waiting for approval
+        Active, // Approved and active
+        Inactive, // Denied or disabled
+        Suspended, // Temporarily disabled
     }
 }

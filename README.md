@@ -223,6 +223,38 @@ Notes:
 - The `--startup-project` points to the app that configures services and the connection string (typically `API`).
 - Ensure the connection string in `bc_handball_be.API/appsettings.json` (or environment) is correct before running `database update`.
 
+## Importing sample data
+
+If you have the `final_import.sql` file (converted PostgreSQL data export), you can import it to populate your database with tournament data.
+
+**Prerequisites:**
+- Database migrations must be applied first (run `dotnet ef database update`)
+- Docker container must be running (`docker-compose up -d`)
+
+**Import data:**
+
+```powershell
+# Clear existing data (optional - only if you want a fresh start)
+docker exec bc_handball_pg psql -U devuser -d handball_is -c "TRUNCATE handball_is.\"Tournament\" CASCADE;"
+
+# Import the data
+cat final_import.sql | docker exec -i bc_handball_pg psql -U devuser -d handball_is
+```
+
+**What gets imported:**
+- ~35 Clubs with logos and contact information
+- ~100+ Teams across multiple categories
+- ~1,200+ Players
+- ~280+ Matches with scores and events
+- ~1,400+ Persons (players, coaches, admins)
+- Tournament data (Polanka Cup)
+- 10,000+ Events (match events)
+
+This is useful for:
+- Development and testing with realistic data
+- Resetting database to a known state
+- Setting up a new environment quickly
+
 ## End-to-end example: Full request flow
 
 Below is a simplified example showing how a request travels through the layers with **correct architectural patterns**. We'll create a small feature to get a team by ID.

@@ -1,26 +1,25 @@
+using System.Security.Claims;
+using System.Text;
 using bc_handball_be.API.Mapping;
 using bc_handball_be.API.Middleware;
-using bc_handball_be.Infrastructure;
-
-using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using System.Text;
-using Microsoft.IdentityModel.Tokens;
-using bc_handball_be.Infrastructure.Persistence;
-using bc_handball_be.Infrastructure.Repositories;
-using bc_handball_be.Core.Services;
-using Microsoft.OpenApi.Models;
 using bc_handball_be.Core.Interfaces.IRepositories;
 using bc_handball_be.Core.Interfaces.IServices;
-using System.Security.Claims;
-
+using bc_handball_be.Core.Services;
+using bc_handball_be.Infrastructure;
+using bc_handball_be.Infrastructure.Persistence;
+using bc_handball_be.Infrastructure.Repositories;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
 var key = Encoding.UTF8.GetBytes(jwtSettings["Secret"]);
 
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+builder
+    .Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
         options.TokenValidationParameters = new TokenValidationParameters
@@ -31,7 +30,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateAudience = false,
             ValidateLifetime = true,
             ClockSkew = TimeSpan.Zero,
-            RoleClaimType = ClaimTypes.Role
+            RoleClaimType = ClaimTypes.Role,
         };
     });
 
@@ -39,20 +38,29 @@ builder.Services.AddAuthorization();
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowFrontend",
+    options.AddPolicy(
+        "AllowFrontend",
         policy =>
         {
-            policy.AllowAnyOrigin() // ne do produkce
-                  .AllowAnyMethod()
-                  .AllowAnyHeader();
-        });
+            policy
+                .AllowAnyOrigin() // ne do produkce
+                .AllowAnyMethod()
+                .AllowAnyHeader();
+        }
+    );
 });
 
-
-builder.Services.AddControllers().AddJsonOptions(options =>
-{
-    options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
-});
+builder
+    .Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = System
+            .Text
+            .Json
+            .Serialization
+            .ReferenceHandler
+            .IgnoreCycles;
+    });
 
 builder.Services.AddInfrastructure(builder.Configuration);
 
@@ -60,12 +68,15 @@ builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo
-    {
-        Title = "BC Handball API",
-        Version = "v1",
-        Description = "API for handball tournament management system"
-    });
+    c.SwaggerDoc(
+        "v1",
+        new OpenApiInfo
+        {
+            Title = "BC Handball API",
+            Version = "v1",
+            Description = "API for handball tournament management system",
+        }
+    );
 
     // Include XML comments for better Swagger documentation
     var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
@@ -75,31 +86,35 @@ builder.Services.AddSwaggerGen(c =>
         c.IncludeXmlComments(xmlPath);
     }
 
-    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-    {
-        Description = "Zadejte JWT token (vcetne 'Bearer ' pred nim)",
-        Name = "Authorization",
-        In = ParameterLocation.Header,
-        Type = SecuritySchemeType.ApiKey,
-        Scheme = "Bearer"
-    });
-
-    c.AddSecurityRequirement(new OpenApiSecurityRequirement
-    {
+    c.AddSecurityDefinition(
+        "Bearer",
+        new OpenApiSecurityScheme
         {
-            new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
-            },
-            new string[] {}
+            Description = "Zadejte JWT token (vcetne 'Bearer ' pred nim)",
+            Name = "Authorization",
+            In = ParameterLocation.Header,
+            Type = SecuritySchemeType.ApiKey,
+            Scheme = "Bearer",
         }
-    });
+    );
+
+    c.AddSecurityRequirement(
+        new OpenApiSecurityRequirement
+        {
+            {
+                new OpenApiSecurityScheme
+                {
+                    Reference = new OpenApiReference
+                    {
+                        Type = ReferenceType.SecurityScheme,
+                        Id = "Bearer",
+                    },
+                },
+                new string[] { }
+            },
+        }
+    );
 });
-    
 
 // Mapping
 builder.Services.AddAutoMapper(typeof(MappingProfile));
@@ -133,11 +148,10 @@ builder.Services.AddScoped<IClubAdminRepository, ClubAdminRepository>();
 builder.Services.AddScoped<IClubAdminService, ClubAdminService>();
 builder.Services.AddScoped<ILineupRepository, LineupRepository>();
 builder.Services.AddScoped<ILineupService, LineupService>();
-
+builder.Services.AddScoped<IClubRegistrationRepository, ClubRegistrationRepository>();
+builder.Services.AddScoped<IClubRegistrationService, ClubRegistrationService>();
 
 var app = builder.Build();
-
-
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
@@ -160,7 +174,8 @@ app.MapControllers();
 app.UseStaticFiles();
 
 // Seed data
-using (var scope = app.Services.CreateScope()){
+using (var scope = app.Services.CreateScope())
+{
     var services = scope.ServiceProvider;
     var context = services.GetRequiredService<ApplicationDbContext>();
     context.Database.Migrate();

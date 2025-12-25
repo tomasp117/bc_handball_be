@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -7,13 +7,17 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace bc_handball_be.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialPg : Migration
+    public partial class initialDb : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.EnsureSchema(
+                name: "handball_is");
+
             migrationBuilder.CreateTable(
                 name: "Club",
+                schema: "handball_is",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
@@ -33,6 +37,7 @@ namespace bc_handball_be.Infrastructure.Migrations
 
             migrationBuilder.CreateTable(
                 name: "Person",
+                schema: "handball_is",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
@@ -51,6 +56,7 @@ namespace bc_handball_be.Infrastructure.Migrations
 
             migrationBuilder.CreateTable(
                 name: "Tournament",
+                schema: "handball_is",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
@@ -64,6 +70,7 @@ namespace bc_handball_be.Infrastructure.Migrations
 
             migrationBuilder.CreateTable(
                 name: "Admin",
+                schema: "handball_is",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
@@ -76,6 +83,7 @@ namespace bc_handball_be.Infrastructure.Migrations
                     table.ForeignKey(
                         name: "FK_Admin_Person_PersonId",
                         column: x => x.PersonId,
+                        principalSchema: "handball_is",
                         principalTable: "Person",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -83,6 +91,7 @@ namespace bc_handball_be.Infrastructure.Migrations
 
             migrationBuilder.CreateTable(
                 name: "ClubAdmin",
+                schema: "handball_is",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
@@ -96,12 +105,14 @@ namespace bc_handball_be.Infrastructure.Migrations
                     table.ForeignKey(
                         name: "FK_ClubAdmin_Club_ClubId",
                         column: x => x.ClubId,
+                        principalSchema: "handball_is",
                         principalTable: "Club",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_ClubAdmin_Person_PersonId",
                         column: x => x.PersonId,
+                        principalSchema: "handball_is",
                         principalTable: "Person",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -109,6 +120,7 @@ namespace bc_handball_be.Infrastructure.Migrations
 
             migrationBuilder.CreateTable(
                 name: "Login",
+                schema: "handball_is",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
@@ -124,6 +136,7 @@ namespace bc_handball_be.Infrastructure.Migrations
                     table.ForeignKey(
                         name: "FK_Login_Person_PersonId",
                         column: x => x.PersonId,
+                        principalSchema: "handball_is",
                         principalTable: "Person",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -131,6 +144,7 @@ namespace bc_handball_be.Infrastructure.Migrations
 
             migrationBuilder.CreateTable(
                 name: "Recorder",
+                schema: "handball_is",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
@@ -143,6 +157,7 @@ namespace bc_handball_be.Infrastructure.Migrations
                     table.ForeignKey(
                         name: "FK_Recorder_Person_PersonId",
                         column: x => x.PersonId,
+                        principalSchema: "handball_is",
                         principalTable: "Person",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -150,6 +165,7 @@ namespace bc_handball_be.Infrastructure.Migrations
 
             migrationBuilder.CreateTable(
                 name: "Referee",
+                schema: "handball_is",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
@@ -163,6 +179,7 @@ namespace bc_handball_be.Infrastructure.Migrations
                     table.ForeignKey(
                         name: "FK_Referee_Person_PersonId",
                         column: x => x.PersonId,
+                        principalSchema: "handball_is",
                         principalTable: "Person",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -170,6 +187,7 @@ namespace bc_handball_be.Infrastructure.Migrations
 
             migrationBuilder.CreateTable(
                 name: "TournamentInstance",
+                schema: "handball_is",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
@@ -185,6 +203,7 @@ namespace bc_handball_be.Infrastructure.Migrations
                     table.ForeignKey(
                         name: "FK_TournamentInstance_Tournament_TournamentId",
                         column: x => x.TournamentId,
+                        principalSchema: "handball_is",
                         principalTable: "Tournament",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -192,6 +211,7 @@ namespace bc_handball_be.Infrastructure.Migrations
 
             migrationBuilder.CreateTable(
                 name: "Category",
+                schema: "handball_is",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
@@ -205,6 +225,7 @@ namespace bc_handball_be.Infrastructure.Migrations
                     table.ForeignKey(
                         name: "FK_Category_TournamentInstance_TournamentInstanceId",
                         column: x => x.TournamentInstanceId,
+                        principalSchema: "handball_is",
                         principalTable: "TournamentInstance",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -212,6 +233,7 @@ namespace bc_handball_be.Infrastructure.Migrations
 
             migrationBuilder.CreateTable(
                 name: "Group",
+                schema: "handball_is",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
@@ -227,6 +249,7 @@ namespace bc_handball_be.Infrastructure.Migrations
                     table.ForeignKey(
                         name: "FK_Group_Category_CategoryId",
                         column: x => x.CategoryId,
+                        principalSchema: "handball_is",
                         principalTable: "Category",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -234,6 +257,7 @@ namespace bc_handball_be.Infrastructure.Migrations
 
             migrationBuilder.CreateTable(
                 name: "Team",
+                schema: "handball_is",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
@@ -250,18 +274,21 @@ namespace bc_handball_be.Infrastructure.Migrations
                     table.ForeignKey(
                         name: "FK_Team_Category_CategoryId",
                         column: x => x.CategoryId,
+                        principalSchema: "handball_is",
                         principalTable: "Category",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Team_Club_ClubId",
                         column: x => x.ClubId,
+                        principalSchema: "handball_is",
                         principalTable: "Club",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Team_TournamentInstance_TournamentInstanceId",
                         column: x => x.TournamentInstanceId,
+                        principalSchema: "handball_is",
                         principalTable: "TournamentInstance",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -269,6 +296,7 @@ namespace bc_handball_be.Infrastructure.Migrations
 
             migrationBuilder.CreateTable(
                 name: "Coach",
+                schema: "handball_is",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
@@ -283,12 +311,14 @@ namespace bc_handball_be.Infrastructure.Migrations
                     table.ForeignKey(
                         name: "FK_Coach_Person_PersonId",
                         column: x => x.PersonId,
+                        principalSchema: "handball_is",
                         principalTable: "Person",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Coach_Team_TeamId",
                         column: x => x.TeamId,
+                        principalSchema: "handball_is",
                         principalTable: "Team",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -296,6 +326,7 @@ namespace bc_handball_be.Infrastructure.Migrations
 
             migrationBuilder.CreateTable(
                 name: "Match",
+                schema: "handball_is",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
@@ -319,30 +350,35 @@ namespace bc_handball_be.Infrastructure.Migrations
                     table.ForeignKey(
                         name: "FK_Match_Group_GroupId",
                         column: x => x.GroupId,
+                        principalSchema: "handball_is",
                         principalTable: "Group",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Match_Referee_AssistantRefereeId",
                         column: x => x.AssistantRefereeId,
+                        principalSchema: "handball_is",
                         principalTable: "Referee",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.SetNull);
                     table.ForeignKey(
                         name: "FK_Match_Referee_MainRefereeId",
                         column: x => x.MainRefereeId,
+                        principalSchema: "handball_is",
                         principalTable: "Referee",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.SetNull);
                     table.ForeignKey(
                         name: "FK_Match_Team_AwayTeamId",
                         column: x => x.AwayTeamId,
+                        principalSchema: "handball_is",
                         principalTable: "Team",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Match_Team_HomeTeamId",
                         column: x => x.HomeTeamId,
+                        principalSchema: "handball_is",
                         principalTable: "Team",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
@@ -350,6 +386,7 @@ namespace bc_handball_be.Infrastructure.Migrations
 
             migrationBuilder.CreateTable(
                 name: "Player",
+                schema: "handball_is",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
@@ -371,18 +408,21 @@ namespace bc_handball_be.Infrastructure.Migrations
                     table.ForeignKey(
                         name: "FK_Player_Category_CategoryId",
                         column: x => x.CategoryId,
+                        principalSchema: "handball_is",
                         principalTable: "Category",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Player_Person_PersonId",
                         column: x => x.PersonId,
+                        principalSchema: "handball_is",
                         principalTable: "Person",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Player_Team_TeamId",
                         column: x => x.TeamId,
+                        principalSchema: "handball_is",
                         principalTable: "Team",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.SetNull);
@@ -390,6 +430,7 @@ namespace bc_handball_be.Infrastructure.Migrations
 
             migrationBuilder.CreateTable(
                 name: "TeamGroup",
+                schema: "handball_is",
                 columns: table => new
                 {
                     TeamId = table.Column<int>(type: "integer", nullable: false),
@@ -401,12 +442,14 @@ namespace bc_handball_be.Infrastructure.Migrations
                     table.ForeignKey(
                         name: "FK_TeamGroup_Group_GroupId",
                         column: x => x.GroupId,
+                        principalSchema: "handball_is",
                         principalTable: "Group",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_TeamGroup_Team_TeamId",
                         column: x => x.TeamId,
+                        principalSchema: "handball_is",
                         principalTable: "Team",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -414,6 +457,7 @@ namespace bc_handball_be.Infrastructure.Migrations
 
             migrationBuilder.CreateTable(
                 name: "Lineup",
+                schema: "handball_is",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
@@ -427,12 +471,14 @@ namespace bc_handball_be.Infrastructure.Migrations
                     table.ForeignKey(
                         name: "FK_Lineup_Match_MatchId",
                         column: x => x.MatchId,
+                        principalSchema: "handball_is",
                         principalTable: "Match",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Lineup_Team_TeamId",
                         column: x => x.TeamId,
+                        principalSchema: "handball_is",
                         principalTable: "Team",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -440,6 +486,7 @@ namespace bc_handball_be.Infrastructure.Migrations
 
             migrationBuilder.CreateTable(
                 name: "Event",
+                schema: "handball_is",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
@@ -457,18 +504,21 @@ namespace bc_handball_be.Infrastructure.Migrations
                     table.ForeignKey(
                         name: "FK_Event_Match_MatchId",
                         column: x => x.MatchId,
+                        principalSchema: "handball_is",
                         principalTable: "Match",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Event_Player_AuthorId",
                         column: x => x.AuthorId,
+                        principalSchema: "handball_is",
                         principalTable: "Player",
                         principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
                 name: "LineupPlayer",
+                schema: "handball_is",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
@@ -482,12 +532,14 @@ namespace bc_handball_be.Infrastructure.Migrations
                     table.ForeignKey(
                         name: "FK_LineupPlayer_Lineup_LineupId",
                         column: x => x.LineupId,
+                        principalSchema: "handball_is",
                         principalTable: "Lineup",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_LineupPlayer_Player_PlayerId",
                         column: x => x.PlayerId,
+                        principalSchema: "handball_is",
                         principalTable: "Player",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
@@ -495,153 +547,182 @@ namespace bc_handball_be.Infrastructure.Migrations
 
             migrationBuilder.CreateIndex(
                 name: "IX_Admin_PersonId",
+                schema: "handball_is",
                 table: "Admin",
                 column: "PersonId",
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Category_TournamentInstanceId",
+                schema: "handball_is",
                 table: "Category",
                 column: "TournamentInstanceId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ClubAdmin_ClubId",
+                schema: "handball_is",
                 table: "ClubAdmin",
                 column: "ClubId",
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_ClubAdmin_PersonId",
+                schema: "handball_is",
                 table: "ClubAdmin",
                 column: "PersonId",
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Coach_PersonId",
+                schema: "handball_is",
                 table: "Coach",
                 column: "PersonId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Coach_TeamId",
+                schema: "handball_is",
                 table: "Coach",
                 column: "TeamId",
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Event_AuthorId",
+                schema: "handball_is",
                 table: "Event",
                 column: "AuthorId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Event_MatchId",
+                schema: "handball_is",
                 table: "Event",
                 column: "MatchId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Group_CategoryId",
+                schema: "handball_is",
                 table: "Group",
                 column: "CategoryId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Lineup_MatchId",
+                schema: "handball_is",
                 table: "Lineup",
                 column: "MatchId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Lineup_TeamId",
+                schema: "handball_is",
                 table: "Lineup",
                 column: "TeamId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_LineupPlayer_LineupId",
+                schema: "handball_is",
                 table: "LineupPlayer",
                 column: "LineupId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_LineupPlayer_PlayerId",
+                schema: "handball_is",
                 table: "LineupPlayer",
                 column: "PlayerId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Login_PersonId",
+                schema: "handball_is",
                 table: "Login",
                 column: "PersonId",
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Match_AssistantRefereeId",
+                schema: "handball_is",
                 table: "Match",
                 column: "AssistantRefereeId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Match_AwayTeamId",
+                schema: "handball_is",
                 table: "Match",
                 column: "AwayTeamId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Match_GroupId",
+                schema: "handball_is",
                 table: "Match",
                 column: "GroupId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Match_HomeTeamId",
+                schema: "handball_is",
                 table: "Match",
                 column: "HomeTeamId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Match_MainRefereeId",
+                schema: "handball_is",
                 table: "Match",
                 column: "MainRefereeId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Player_CategoryId",
+                schema: "handball_is",
                 table: "Player",
                 column: "CategoryId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Player_PersonId",
+                schema: "handball_is",
                 table: "Player",
                 column: "PersonId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Player_TeamId",
+                schema: "handball_is",
                 table: "Player",
                 column: "TeamId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Recorder_PersonId",
+                schema: "handball_is",
                 table: "Recorder",
                 column: "PersonId",
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Referee_PersonId",
+                schema: "handball_is",
                 table: "Referee",
                 column: "PersonId",
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Team_CategoryId",
+                schema: "handball_is",
                 table: "Team",
                 column: "CategoryId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Team_ClubId",
+                schema: "handball_is",
                 table: "Team",
                 column: "ClubId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Team_TournamentInstanceId",
+                schema: "handball_is",
                 table: "Team",
                 column: "TournamentInstanceId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_TeamGroup_GroupId",
+                schema: "handball_is",
                 table: "TeamGroup",
                 column: "GroupId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_TournamentInstance_TournamentId",
+                schema: "handball_is",
                 table: "TournamentInstance",
                 column: "TournamentId");
         }
@@ -650,61 +731,80 @@ namespace bc_handball_be.Infrastructure.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Admin");
+                name: "Admin",
+                schema: "handball_is");
 
             migrationBuilder.DropTable(
-                name: "ClubAdmin");
+                name: "ClubAdmin",
+                schema: "handball_is");
 
             migrationBuilder.DropTable(
-                name: "Coach");
+                name: "Coach",
+                schema: "handball_is");
 
             migrationBuilder.DropTable(
-                name: "Event");
+                name: "Event",
+                schema: "handball_is");
 
             migrationBuilder.DropTable(
-                name: "LineupPlayer");
+                name: "LineupPlayer",
+                schema: "handball_is");
 
             migrationBuilder.DropTable(
-                name: "Login");
+                name: "Login",
+                schema: "handball_is");
 
             migrationBuilder.DropTable(
-                name: "Recorder");
+                name: "Recorder",
+                schema: "handball_is");
 
             migrationBuilder.DropTable(
-                name: "TeamGroup");
+                name: "TeamGroup",
+                schema: "handball_is");
 
             migrationBuilder.DropTable(
-                name: "Lineup");
+                name: "Lineup",
+                schema: "handball_is");
 
             migrationBuilder.DropTable(
-                name: "Player");
+                name: "Player",
+                schema: "handball_is");
 
             migrationBuilder.DropTable(
-                name: "Match");
+                name: "Match",
+                schema: "handball_is");
 
             migrationBuilder.DropTable(
-                name: "Group");
+                name: "Group",
+                schema: "handball_is");
 
             migrationBuilder.DropTable(
-                name: "Referee");
+                name: "Referee",
+                schema: "handball_is");
 
             migrationBuilder.DropTable(
-                name: "Team");
+                name: "Team",
+                schema: "handball_is");
 
             migrationBuilder.DropTable(
-                name: "Person");
+                name: "Person",
+                schema: "handball_is");
 
             migrationBuilder.DropTable(
-                name: "Category");
+                name: "Category",
+                schema: "handball_is");
 
             migrationBuilder.DropTable(
-                name: "Club");
+                name: "Club",
+                schema: "handball_is");
 
             migrationBuilder.DropTable(
-                name: "TournamentInstance");
+                name: "TournamentInstance",
+                schema: "handball_is");
 
             migrationBuilder.DropTable(
-                name: "Tournament");
+                name: "Tournament",
+                schema: "handball_is");
         }
     }
 }

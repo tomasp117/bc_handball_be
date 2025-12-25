@@ -12,6 +12,7 @@ namespace bc_handball_be.Core.Entities
         // Navigation properties
         public ICollection<Team> Teams { get; set; } = new List<Team>();
         public ICollection<Category> Categories { get; set; } = new List<Category>();
+        public ICollection<ClubRegistration> ClubRegistrations { get; set; } = new List<ClubRegistration>();
 
 
         // Foreign keys

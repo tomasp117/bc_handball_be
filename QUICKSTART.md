@@ -51,6 +51,32 @@ The API will:
 2. Open Swagger UI in browser: `http://localhost:5000/swagger`
 3. Try a GET endpoint (e.g., `/api/tournaments`)
 
+## 4. Import Sample Data (Optional)
+
+Want to work with real tournament data? Import the sample dataset:
+
+```powershell
+# Make sure database is running and migrations are applied
+cat final_import.sql | docker exec -i bc_handball_pg psql -U devuser -d handball_is
+```
+
+**What you get:**
+- 35 Clubs (DHK Zora Olomouc, HC Zlín, etc.)
+- 100+ Teams across 5 categories
+- 1,200+ Players
+- 280+ Matches with full scores
+- 10,000+ Match events
+- Tournament: Polanka Cup
+
+**To reset database:**
+```powershell
+# Clear all data
+docker exec bc_handball_pg psql -U devuser -d handball_is -c "TRUNCATE handball_is.\"Tournament\" CASCADE;"
+
+# Re-import
+cat final_import.sql | docker exec -i bc_handball_pg psql -U devuser -d handball_is
+```
+
 ## Quick Commands
 
 ```powershell

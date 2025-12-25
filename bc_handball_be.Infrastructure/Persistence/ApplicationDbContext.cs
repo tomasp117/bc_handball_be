@@ -30,11 +30,16 @@ namespace bc_handball_be.Infrastructure.Persistence
         public DbSet<TeamGroup> TeamGroups { get; set; }
         public DbSet<Lineup> Lineups { get; set; }
         public DbSet<LineupPlayer> LineupPlayers { get; set; }
+        public DbSet<ClubRegistration> ClubRegistrations { get; set; }
+        public DbSet<ClubRegistrationCategory> ClubRegistrationCategories { get; set; }
 
 
         override protected void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            // Set default schema to handball_is
+            modelBuilder.HasDefaultSchema("handball_is");
 
             modelBuilder.Entity<Tournament>().ToTable("Tournament");
             modelBuilder.Entity<TournamentInstance>().ToTable("TournamentInstance");
@@ -55,6 +60,8 @@ namespace bc_handball_be.Infrastructure.Persistence
             modelBuilder.Entity<ClubAdmin>().ToTable("ClubAdmin");
             modelBuilder.Entity<Lineup>().ToTable("Lineup");
             modelBuilder.Entity<LineupPlayer>().ToTable("LineupPlayer");
+            modelBuilder.Entity<ClubRegistration>().ToTable("ClubRegistration");
+            modelBuilder.Entity<ClubRegistrationCategory>().ToTable("ClubRegistrationCategory");
 
             // 1:N Tournament - TournamentInstance
             modelBuilder.Entity<Tournament>()
@@ -133,6 +140,34 @@ namespace bc_handball_be.Infrastructure.Persistence
                 .WithOne(t => t.Club)
                 .HasForeignKey(t => t.ClubId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            // 1:1 Club - ClubRegistration
+            modelBuilder.Entity<Club>()
+                .HasOne(c => c.ClubRegistration)
+                .WithOne(cr => cr.Club)
+                .HasForeignKey<ClubRegistration>(cr => cr.ClubId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // 1:N TournamentInstance - ClubRegistration
+            modelBuilder.Entity<TournamentInstance>()
+                .HasMany(ti => ti.ClubRegistrations)
+                .WithOne(cr => cr.TournamentInstance)
+                .HasForeignKey(cr => cr.TournamentInstanceId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // 1:N ClubRegistration - ClubRegistrationCategory
+            modelBuilder.Entity<ClubRegistration>()
+                .HasMany(cr => cr.CategoryTeamCounts)
+                .WithOne(crc => crc.ClubRegistration)
+                .HasForeignKey(crc => crc.ClubRegistrationId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // 1:N Category - ClubRegistrationCategory
+            modelBuilder.Entity<Category>()
+                .HasMany(c => c.ClubRegistrationCategories)
+                .WithOne(crc => crc.Category)
+                .HasForeignKey(crc => crc.CategoryId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             // 1:N Category - Player
             modelBuilder.Entity<Category>()
@@ -266,6 +301,8 @@ namespace bc_handball_be.Infrastructure.Persistence
             // Enum conversions
             //modelBuilder.Entity<Person>().Property(p => p.Role).HasConversion<string>();
             modelBuilder.Entity<Match>().Property(m => m.State).HasConversion<string>();
+            modelBuilder.Entity<Club>().Property(c => c.Status).HasConversion<string>();
+            modelBuilder.Entity<ClubRegistration>().Property(cr => cr.Status).HasConversion<string>();
 
             // Ignore navigation properties in database
             //modelBuilder.Entity<Team>().Ignore(t => t.Group);

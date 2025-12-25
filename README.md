@@ -9,11 +9,13 @@ This repository contains the backend for the BC Handball application. Below you'
   - `Controllers/` — API endpoints (HTTP layer)
   - `DTOs/` — API-specific data transfer objects (optional, for API-specific concerns)
   - `Mapping/MappingProfile.cs` — AutoMapper configuration mapping between Core models and API DTOs
+  - `Middleware/` — Custom middleware components (exception handling, logging, etc.)
   - `Program.cs` — application entrypoint and dependency injection configuration
 - `bc_handball_be.Core/` — core domain logic, entities, service contracts and models
   - `Interfaces/` — service and repository interfaces (contracts)
   - `Services/` — business logic implementations (orchestrate repositories, validation, business rules)
   - `Entities/` — domain entities (database models)
+  - `Exceptions/` — custom exception types (NotFoundException, BadRequestException, ValidationException, etc.)
   - `Models/` or `DTOs/` — service layer models/DTOs (used by services and controllers)
 - `bc_handball_be.Infrastructure/` — persistence and external implementation
   - `Persistence/` — EF Core DbContext and configuration
@@ -79,6 +81,372 @@ Frontend → API → Core ← Infrastructure
     - Implement complex queries spanning multiple aggregates (move to services)
   - **Dependencies**: References `Core` to implement its interfaces.
   - This layer should be the only place that knows about EF Core directly.
+
+## Exception Handling Architecture
+
+The application uses a centralized exception handling approach with custom exceptions and middleware:
+
+### Custom Exceptions (bc_handball_be.Core/Exceptions)
+
+Custom exception types define domain-specific errors that map to HTTP status codes:
+
+- **NotFoundException** → HTTP 404 (resource not found)
+- **BadRequestException** → HTTP 400 (invalid request data)
+- **ValidationException** → HTTP 422 (validation errors with detailed field-level errors)
+- **UnauthorizedException** → HTTP 401 (authentication required)
+- **ForbiddenException** → HTTP 403 (insufficient permissions)
+
+These exceptions are **thrown from services** when business rules are violated or resources cannot be found.
+
+### Global Exception Handler Middleware (bc_handball_be.API/Middleware)
+
+The `GlobalExceptionHandlerMiddleware` catches all unhandled exceptions and:
+
+1. Logs the exception with appropriate severity
+2. Maps custom exceptions to standardized JSON error responses with correct HTTP status codes
+3. Returns a consistent error response format:
+   ```json
+   {
+     "statusCode": 404,
+     "message": "Team with key '123' was not found.",
+     "errors": null,
+     "details": "stack trace (Development only)"
+   }
+   ```
+4. Includes stack traces in Development environment for debugging
+5. Returns generic error messages for unexpected exceptions in Production
+
+**Registration**: The middleware is registered early in the pipeline in `Program.cs` to catch all exceptions.
+
+### Exception Handling Flow
+
+1. **Service Layer** (Core/Services): Validates business rules and throws custom exceptions when rules are violated
+2. **Controller Layer** (API/Controllers): Lets exceptions bubble up (no try-catch needed)
+3. **Middleware** (API/Middleware): Catches exceptions globally, logs them, and returns standardized error responses
+4. **Frontend**: Receives consistent error format with appropriate HTTP status codes
+
+This approach ensures clean separation of concerns: business logic throws domain exceptions, middleware handles HTTP concerns.
+
+## Entity Domain Model (Class Diagram)
+
+The following diagram shows the relationships between core domain entities:
+
+```mermaid
+classDiagram
+    %% Base Classes
+    class BaseEntity {
+        <<abstract>>
+        +int Id
+    }
+
+    class BasePersonRole {
+        <<abstract>>
+        +int PersonId
+        +Person Person
+    }
+
+    %% Tournament Hierarchy
+    class Tournament {
+        +string Name
+        +ICollection~TournamentInstance~ Editions
+    }
+
+    class TournamentInstance {
+        +int EditionNumber
+        +DateTime StartDate
+        +DateTime EndDate
+        +int TournamentId
+        +Tournament Tournament
+        +ICollection~Team~ Teams
+        +ICollection~Category~ Categories
+        +ICollection~ClubRegistration~ ClubRegistrations
+    }
+
+    %% Club and Registration
+    class Club {
+        +string Name
+        +string Logo
+        +string Email
+        +string Address
+        +string ICO
+        +ClubStatus Status
+        +ClubAdmin ClubAdmin
+        +bool IsPlaceholder
+        +ICollection~Team~ Teams
+        +ClubRegistration ClubRegistration
+    }
+
+    class ClubRegistration {
+        +int PackageACount
+        +int PackageBCount
+        +float CalculatedFee
+        +RegistrationStatus Status
+        +DateTime SubmittedDate
+        +int ClubId
+        +Club Club
+        +int TournamentInstanceId
+        +TournamentInstance TournamentInstance
+        +ICollection~ClubRegistrationCategory~ CategoryTeamCounts
+    }
+
+    class ClubRegistrationCategory {
+        +int TeamCount
+        +int ClubRegistrationId
+        +ClubRegistration ClubRegistration
+        +int CategoryId
+        +Category Category
+    }
+
+    %% Category and Competition Structure
+    class Category {
+        +string Name
+        +int TournamentInstanceId
+        +TournamentInstance TournamentInstance
+        +ICollection~Match~ Matches
+        +ICollection~Group~ Groups
+        +ICollection~Player~ Stats
+        +ICollection~ClubRegistrationCategory~ ClubRegistrationCategories
+    }
+
+    class Group {
+        +string Name
+        +string Phase
+        +int FinalGroup
+        +int CategoryId
+        +Category Category
+        +ICollection~Match~ Matches
+        +ICollection~TeamGroup~ TeamGroups
+    }
+
+    class TeamGroup {
+        +int TeamId
+        +Team Team
+        +int GroupId
+        +Group Group
+    }
+
+    %% Team Structure
+    class Team {
+        +string Name
+        +bool IsPlaceholder
+        +int ClubId
+        +Club Club
+        +int CategoryId
+        +Category Category
+        +int TournamentInstanceId
+        +TournamentInstance TournamentInstance
+        +ICollection~Player~ Players
+        +Coach Coach
+        +ICollection~TeamGroup~ TeamGroups
+        +ICollection~Match~ HomeMatches
+        +ICollection~Match~ AwayMatches
+        +ICollection~Lineup~ Lineups
+    }
+
+    %% Match and Events
+    class Match {
+        +DateTime Time
+        +string TimePlayed
+        +string Playground
+        +int HomeScore
+        +int AwayScore
+        +MatchState State
+        +int SequenceNumber
+        +int HomeTeamId
+        +Team HomeTeam
+        +int AwayTeamId
+        +Team AwayTeam
+        +int MainRefereeId
+        +Referee MainReferee
+        +int AssistantRefereeId
+        +Referee AssistantReferee
+        +int GroupId
+        +Group Group
+        +Category Category
+        +ICollection~Event~ Events
+        +ICollection~Lineup~ Lineups
+    }
+
+    class Event {
+        +string Type
+        +string Team
+        +string Time
+        +string Message
+        +int MatchId
+        +Match Match
+        +int AuthorId
+        +Player Author
+    }
+
+    %% Lineup System
+    class Lineup {
+        +int MatchId
+        +Match Match
+        +int TeamId
+        +Team Team
+        +ICollection~LineupPlayer~ Players
+    }
+
+    class LineupPlayer {
+        +int LineupId
+        +Lineup Lineup
+        +int PlayerId
+        +Player Player
+    }
+
+    %% Person Hierarchy
+    class Person {
+        +string FirstName
+        +string LastName
+        +string Email
+        +string PhoneNumber
+        +string Address
+        +DateTime DateOfBirth
+        +Login Login
+    }
+
+    class Login {
+        +string Username
+        +string Password
+        +string Salt
+        +int PersonId
+        +Person Person
+        +SetPassword(string)
+        +VerifyPassword(string) bool
+    }
+
+    %% Person Role Subclasses
+    class Player {
+        +int Number
+        +int GoalCount
+        +int SevenMeterGoalCount
+        +int SevenMeterMissCount
+        +int TwoMinPenaltyCount
+        +int RedCardCount
+        +int YellowCardCount
+        +int TeamId
+        +Team Team
+        +int CategoryId
+        +Category Category
+        +ICollection~LineupPlayer~ LineupPlayers
+    }
+
+    class Coach {
+        +char License
+        +int TeamId
+        +Team Team
+    }
+
+    class Referee {
+        +char License
+        +ICollection~Match~ MainRefereeMatches
+        +ICollection~Match~ AssistantRefereeMatches
+    }
+
+    class ClubAdmin {
+        +int ClubId
+        +Club Club
+    }
+
+    %% Enums
+    class ClubStatus {
+        <<enumeration>>
+        Pending
+        Active
+        Inactive
+        Suspended
+    }
+
+    class RegistrationStatus {
+        <<enumeration>>
+        Pending
+        Approved
+        Denied
+    }
+
+    class MatchState {
+        <<enumeration>>
+        None
+        Pending
+        Done
+        Generated
+    }
+
+    %% Inheritance relationships
+    BaseEntity <|-- Tournament
+    BaseEntity <|-- TournamentInstance
+    BaseEntity <|-- Club
+    BaseEntity <|-- ClubRegistration
+    BaseEntity <|-- ClubRegistrationCategory
+    BaseEntity <|-- Category
+    BaseEntity <|-- Group
+    BaseEntity <|-- Team
+    BaseEntity <|-- Match
+    BaseEntity <|-- Event
+    BaseEntity <|-- Lineup
+    BaseEntity <|-- LineupPlayer
+    BaseEntity <|-- Person
+    BaseEntity <|-- Login
+    BaseEntity <|-- BasePersonRole
+
+    BasePersonRole <|-- Player
+    BasePersonRole <|-- Coach
+    BasePersonRole <|-- Referee
+    BasePersonRole <|-- ClubAdmin
+
+    %% Composition relationships
+    Tournament "1" --> "*" TournamentInstance : has editions
+    TournamentInstance "1" --> "*" Team : contains
+    TournamentInstance "1" --> "*" Category : organizes
+    TournamentInstance "1" --> "*" ClubRegistration : receives
+
+    Club "1" --> "*" Team : registers
+    Club "1" --> "0..1" ClubRegistration : submits
+    Club "1" --> "0..1" ClubAdmin : managed by
+
+    ClubRegistration "1" --> "*" ClubRegistrationCategory : specifies
+    ClubRegistrationCategory "*" --> "1" Category : for
+
+    Category "1" --> "*" Group : organizes
+    Category "1" --> "*" Match : contains
+    Category "1" --> "*" Player : tracks stats
+
+    Group "1" --> "*" Match : schedules
+    Group "1" --> "*" TeamGroup : assigns
+
+    Team "1" --> "*" Player : has
+    Team "0..1" --> "0..1" Coach : coached by
+    Team "1" --> "*" TeamGroup : participates in
+    Team "1" --> "*" Match : plays (home)
+    Team "1" --> "*" Match : plays (away)
+    Team "1" --> "*" Lineup : submits
+
+    Match "1" --> "*" Event : records
+    Match "1" --> "*" Lineup : requires
+    Match "1" --> "0..1" Referee : main referee
+    Match "1" --> "0..1" Referee : assistant referee
+
+    Lineup "1" --> "*" LineupPlayer : contains
+    LineupPlayer "*" --> "1" Player : references
+
+    Person "1" --> "0..1" Login : has credentials
+    Person "1" --> "*" BasePersonRole : takes roles
+
+    Event "*" --> "0..1" Player : authored by
+```
+
+**Key Entity Relationships:**
+
+- **Tournament → TournamentInstance**: One tournament (e.g., "Polanka Cup") has multiple editions (years)
+- **TournamentInstance → Category**: Each edition has multiple age categories (e.g., U10, U12, U14)
+- **Category → Group**: Categories are divided into groups for competition phases
+- **Team ↔ Group**: Many-to-many relationship via `TeamGroup` (teams can move between groups in different phases)
+- **Club → Team**: Clubs register multiple teams across different categories
+- **Team → Player/Coach**: Teams have rosters and coaching staff
+- **Match**: Links two teams, referees, and belongs to a group/category
+- **Lineup → LineupPlayer → Player**: Tracks which players participated in specific matches
+- **Person → BasePersonRole**: Person hierarchy allows individuals to have multiple roles (player, coach, referee, admin)
+- **Club → ClubRegistration**: Clubs submit registrations with team counts and accommodation packages
 
 ## Typical request flow (Front-end → DB)
 

@@ -106,6 +106,7 @@ Frontend → API → Core ← Infrastructure
 - Controllers: HTTP endpoints
 - DTOs: API-specific data transfer objects (optional)
 - `Mapping/MappingProfile.cs`: AutoMapper configuration
+- `Middleware/`: Custom middleware (exception handling, logging, etc.)
 - `Program.cs`: DI registration, middleware, authentication setup
 - References: Core only (NOT Infrastructure)
 
@@ -115,6 +116,7 @@ Frontend → API → Core ← Infrastructure
 - `Interfaces/IServices/`: Service contracts
 - `Interfaces/IRepositories/`: Repository contracts
 - `Services/`: Business logic implementations
+- `Exceptions/`: Custom exception types (NotFoundException, BadRequestException, ValidationException, etc.)
 - `DTOs/` or `Models/`: Service-layer models (NOT API-specific)
 - References: Nothing (pure business logic)
 
@@ -159,6 +161,7 @@ Frontend → API → Core ← Infrastructure
 4. Controller calls `IService` with Entity (injected from Core)
 5. `Core/Services/*Service.cs`:
    - Validates input (business rules)
+   - **Throws custom exceptions** (NotFoundException, BadRequestException, etc.) if validation fails
    - **Orchestrates multiple repositories** as needed
    - Handles transactions
    - Works with **Entities only**, not DTOs
@@ -173,6 +176,53 @@ Frontend → API → Core ← Infrastructure
 8. Results flow back: Repository → Service (Entity) → Controller
 9. **Controller maps Entity → DTO** using `_mapper.Map<DTO>(entity)`
 10. Controller → HTTP Response (with DTO as JSON)
+11. **If exception occurs**: `API/Middleware/GlobalExceptionHandlerMiddleware` catches it, logs it, and returns standardized error response
+
+## Exception Handling
+
+The application uses **centralized exception handling** with custom exceptions and middleware:
+
+### Custom Exceptions (Core/Exceptions)
+
+Services throw domain-specific exceptions that map to HTTP status codes:
+
+- **NotFoundException** → HTTP 404 (use when resource is not found)
+- **BadRequestException** → HTTP 400 (use when request data is invalid)
+- **ValidationException** → HTTP 422 (use for validation errors with field-level details)
+- **UnauthorizedException** → HTTP 401 (use when authentication is required)
+- **ForbiddenException** → HTTP 403 (use when user lacks permissions)
+
+**When to use:**
+
+- Throw exceptions **from services** when business rules are violated
+- Controllers should **NOT catch** these exceptions - let them bubble up
+- Middleware handles conversion to HTTP responses
+
+**Example:**
+
+```csharp
+// In Core/Services/TeamService.cs
+public async Task<Team> GetTeamByIdAsync(int id)
+{
+    var team = await _teamRepository.GetByIdAsync(id);
+    if (team == null)
+        throw new NotFoundException(nameof(Team), id); // Will become HTTP 404
+
+    return team;
+}
+```
+
+### Global Exception Handler Middleware (API/Middleware)
+
+`GlobalExceptionHandlerMiddleware` automatically:
+
+- Catches all unhandled exceptions
+- Maps custom exceptions to appropriate HTTP status codes
+- Returns standardized JSON error responses
+- Logs exceptions with appropriate severity
+- Includes stack traces in Development mode only
+
+**You don't need to manually register this** - it's already configured in `Program.cs`.
 
 ## Adding a New Feature (Correct Pattern)
 
@@ -236,3 +286,27 @@ Main entities (in `Core/Entities/`): Tournament, TournamentInstance, Team, Categ
 **Important**: Services work directly with these Entities, not DTOs. DTOs only exist in the API layer for HTTP communication. Review existing services in `Core/Services/` for patterns before adding new features.
 
 **Specialized Service Models** (in `Core/Services/Models/`): TeamWithAttributes, GroupAssignmentVariant, UnassignedMatch, GroupStanding, PlaceholderTeam, etc. These are internal models used only for complex business logic calculations within services - they are NOT replacements for general DTOs.
+
+## Entity Domain Model
+
+For a complete class diagram showing all entity relationships, see the **Entity Domain Model (Class Diagram)** section in `README.md`.
+
+**Key Entity Structure:**
+
+- **BaseEntity**: Abstract base class providing `Id` property to all entities
+- **BasePersonRole**: Abstract base for all person roles (Player, Coach, Referee, ClubAdmin)
+- **Tournament → TournamentInstance**: Tournament editions (years)
+- **TournamentInstance → Category → Group**: Competition hierarchy
+- **Club → Team → Player/Coach**: Club roster management
+- **Team ↔ Group**: Many-to-many via `TeamGroup` join table
+- **Match**: Links teams, referees, groups; tracks events and lineups
+- **Person → BasePersonRole**: One person can have multiple roles
+- **ClubRegistration**: Tracks club tournament registrations with package selections
+
+The domain model follows **Clean Architecture** principles with all entities in `Core/Entities/` and organized into subdirectories:
+
+- `Actors/super/`: Person entity
+- `Actors/sub/`: Person role entities (Player, Coach, Referee, ClubAdmin)
+- `Actors/`: BasePersonRole abstract class
+- `IdentityField/`: BaseEntity abstract class
+- Root: Core tournament entities (Tournament, Team, Match, etc.)
